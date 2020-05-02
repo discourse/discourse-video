@@ -1,0 +1,4 @@
+plugins:
+  video_enabled:
+    default: false
+    client: true
