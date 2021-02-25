@@ -1,4 +1,4 @@
 plugins:
-  video_enabled:
+  discourse_video_enabled:
     default: false
     client: true

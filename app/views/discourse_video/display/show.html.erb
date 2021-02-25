@@ -1,0 +1,43 @@
+<html>
+<head>
+<style>
+    html, body, .video-js{
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+</style>
+</head>
+<body>
+  <video id="myVideo" class="video-js" controls></video>
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script>
+    (function(){
+      // Replace with your asset's playback ID
+      var playbackId = "M1RrzylHD7FDbL2mVC00jMd8URq028eJxt";
+      var url = "https://stream.mux.com/"+playbackId+".m3u8";
+      var video = document.getElementById("myVideo");
+
+      // Let native HLS support handle it if possible
+      if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = url;
+      } else if (Hls.isSupported()) {
+        // HLS.js-specific setup code
+        hls = new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+      }
+    })();
+  </script>
+
+
+  <!-- Use HLS.js to support the HLS format in browsers. -->
+  <!-- <script src="/vendor/hls.min.js"></script>-->
+  <!-- <script src="/assets/plugins/hls.min.js"></script>
+  <script src="/assets/plugins/discourse-video.js" type="text/discourse-plugin" version="0.8">
+  </script> -->
+</body>
+</html>
+
