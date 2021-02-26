@@ -1,4 +1,6 @@
 import { withPluginApi } from "discourse/lib/plugin-api";
+import showModal from "discourse/lib/show-modal";
+import { renderIcon } from "discourse-common/lib/icon-library";
 
 function initializeDiscourseVideo(api) {
   console.log("discourse-video");
@@ -26,6 +28,19 @@ function initializeDiscourseVideo(api) {
       //);
     }
   });
+
+  api.onToolbarCreate(toolbar => {
+    toolbar.addButton({
+      id: "discourse-video-upload",
+      group: "insertions",
+      icon: "film",
+      title: "discourse_video.upload_toolbar_title",
+      perform: () => {
+        showModal("discourse-video-upload-modal");
+      }
+    });
+  });
+
 }
 
 export default {

@@ -6,13 +6,12 @@
 
 enabled_site_setting :discourse_video_enabled
 
-# https://cdn.jsdelivr.net/npm/hls.js@0.14.17
-# Can I just include this in the plugin?
 extend_content_security_policy(
   script_src: ["https://cdn.jsdelivr.net", "https://stream.mux.com"]
 )
 register_asset "vendor/hls.min.js"
 register_asset "vendor/mux-load-stream.js"
+register_asset "vendor/upchunk.js"
 
 #https://stream.mux.com/FC9pbuRQwEgiTPDmm5PoRRO5lRhVyHUE.m3u8
 %w{
