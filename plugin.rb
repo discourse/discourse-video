@@ -4,6 +4,10 @@
 # authors: Blake Erickson
 # url: https://github.com/oblakeerickson/discourse-video
 
+gem 'ethon', '0.9.0' # required by typhoeus
+gem 'typhoeus', '1.0.2' # required by mux_ruby
+gem 'mux_ruby', '1.8.1'
+
 enabled_site_setting :discourse_video_enabled
 
 extend_content_security_policy(
@@ -16,6 +20,7 @@ register_asset "vendor/upchunk.js"
 #https://stream.mux.com/FC9pbuRQwEgiTPDmm5PoRRO5lRhVyHUE.m3u8
 %w{
   ../lib/discourse_video/engine.rb
+  ../lib/discourse_video/mux_api.rb
 }.each do |path|
   load File.expand_path(path, __FILE__)
 end
@@ -23,7 +28,7 @@ end
 after_initialize do
   require_relative "app/controllers/discourse_video/display_controller.rb"
 
-  #register_post_custom_field_type('discourse_video', :string)
+  register_post_custom_field_type('discourse_video', :string)
 #  require_relative 'app/jobs/regular/upload_video_to_provider'
 #
 #  on(:post_process_cooked) do |doc, post|

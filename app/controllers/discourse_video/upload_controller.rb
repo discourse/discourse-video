@@ -15,6 +15,11 @@ module DiscourseVideo
       filename = params.require(:filename)
 
       hijack do
+        direct_upload = MuxApi.create_direct_upload_2
+        result = JSON.parse(direct_upload)
+        puts result["data"]
+        puts result["data"]["url"]
+        puts "======================================"
         #api = API.create(name)
         #video = Brightcove::Video.new(video_id: api.id, state: Brightcove::Video::PENDING, user: current_user)
         begin
@@ -26,7 +31,8 @@ module DiscourseVideo
           #video.save!
         end
 
-        render json: {
+        render json: { hello: "hello"
+          #mux_url: mux_url
           #video_id: video.video_id,
           #bucket: ingest_info[:bucket],
           #object_key: ingest_info[:object_key],
