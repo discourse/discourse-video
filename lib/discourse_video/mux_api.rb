@@ -39,5 +39,9 @@ module DiscourseVideo
        puts response
        response
     end
+
+    def self.get_playback_id(video_id)
+
+    end
   end
 end

@@ -18,21 +18,12 @@ module DiscourseVideo
         begin
           direct_upload = MuxApi.create_direct_upload_2
           result = JSON.parse(direct_upload)
-          puts result["data"]
-          puts result["data"]["url"]
-          puts "======================================"
-          #api = API.create(name)
-          #video = Brightcove::Video.new(video_id: api.id, state: Brightcove::Video::PENDING, user: current_user)
           video = DiscourseVideo::Video.new(
             video_id: result["data"]["id"],
             state: result["data"]["status"],
             user: current_user,
             api_request_url: result["data"]["url"]
           )
-          #api.move_to_folder(SiteSetting.brightcove_folder_id) unless SiteSetting.brightcove_folder_id.blank?
-          #ingest_info = api.get_ingest_url(filename)
-          #video.secret_access_key = ingest_info[:secret_access_key]
-          #video.api_request_url = ingest_info[:api_request_url]
         ensure
           video.save!
         end

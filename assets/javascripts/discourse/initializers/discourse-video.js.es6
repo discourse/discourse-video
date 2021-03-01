@@ -6,21 +6,27 @@ function initializeDiscourseVideo(api) {
   console.log("discourse-video");
   const siteSettings = api.container.lookup("site-settings:main");
 
-  function renderVideo($container, video_id) {
+  function renderVideo($container, videoId) {
     $container.removeAttr("data-video-id");
-    video_id = "M1RrzylHD7FDbL2mVC00jMd8URq028eJxt"
     const $videoElem = $("<iframe/>").attr({
-      src: `${Discourse.BaseUri}/discourse_video/${video_id}`,
+      src: `${Discourse.BaseUri}/discourse_video/${videoId}`,
       class: "discourse_video"
     });
     $container.html($videoElem);
   }
 
   api.decorateCooked(($elem, helper) => {
-    console.log("cooked");
     if (helper) {
       const post = helper.getModel();
-      renderVideo($elem, post);
+      //console.log(post);
+      console.log(post.cooked);
+      let videoIdParts = post.cooked.split('[video=');
+      if (videoIdParts.length > 1) {
+        console.log(videoIdParts);
+        let videoId = videoIdParts[1].split(']')[0];
+        console.log(videoId);
+        renderVideo($elem, videoId);
+      }
     } else {
       console.log('else');
       //$("div[data-video-id]", $elem).html(
@@ -47,9 +53,7 @@ export default {
   name: "discourse-video",
 
   initialize(container) {
-    console.log("init");
     const siteSettings = container.lookup("site-settings:main");
-    console.log(siteSettings);
 
     if (siteSettings.discourse_video_enabled) {
       withPluginApi("0.8.31", initializeDiscourseVideo);
