@@ -4,7 +4,8 @@ class CreateDiscourseVideoVideos < ActiveRecord::Migration[6.0]
       t.string :video_id, null: false
       t.string :state, null: false
       t.string :secret_access_key
-      t.string :api_request_url
+      t.string :asset_id
+      t.string :playback_id
       t.string :callback_key
       t.datetime :created_at
       t.datetime :updated_at

@@ -150,6 +150,22 @@ export default Ember.Component.extend({
   //    });
   //},
 
+  //fetchPlaybackId() {
+  //  const videoInfo = this.get("videoInfo");
+  //  const videoId = videoInfo["video_id"]
+  //  ajax(`/discourse_video/playback_id/${videoId}`, {
+  //    type: "GET",
+  //  })
+  //    .then(playbackId => {
+  //      this.uploadComplete(playbackId);
+  //    })
+  //    .catch(reason => {
+  //      console.error("Could not get playbackId.", reason);
+  //      this.setProgress("error");
+  //      popupAjaxError(reason);
+  //    });
+  //},
+
   uploadComplete() {
     const videoInfo = this.get("videoInfo");
     this.setProgress("complete", { info: `[video=${videoInfo["video_id"]}]` });
