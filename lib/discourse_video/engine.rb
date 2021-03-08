@@ -1,4 +1,6 @@
 module DiscourseVideo
+  POST_CUSTOM_FIELD_NAME = "discourse_video"
+
   class Engine < ::Rails::Engine
     engine_name "DiscourseVideo"
     isolate_namespace DiscourseVideo

@@ -3,7 +3,6 @@ import showModal from "discourse/lib/show-modal";
 import { renderIcon } from "discourse-common/lib/icon-library";
 
 function initializeDiscourseVideo(api) {
-  console.log("discourse-video");
   const siteSettings = api.container.lookup("site-settings:main");
 
   function renderVideo($container, videoId) {
@@ -15,25 +14,103 @@ function initializeDiscourseVideo(api) {
     $container.html($videoElem);
   }
 
+  const placeholders = {
+    pending: {
+      iconHtml: "<div class='spinner'></div>",
+      string: I18n.t("discourse_video.state.pending")
+    },
+    errored: {
+      iconHtml: renderIcon("string", "exclamation-triangle"),
+      string: I18n.t("discourse_video.state.errored")
+    },
+    unknown: {
+      iconHtml: renderIcon("string", "question-circle"),
+      string: I18n.t("discourse_video.state.unknown")
+    }
+  };
+
+  function renderPlaceholder($container, type) {
+    $container.html(
+      `<div class='icon-container'><span class='discourse-video-message'>${
+        placeholders[type].iconHtml
+      } ${placeholders[type].string}</span></div>`
+    );
+  }
+
+  function renderVideos($elem, post) {
+    $("div[data-video-id]", $elem).each((index, container) => {
+      const $container = $(container);
+      const video_id = $container.data("video-id").toString();
+      if (!post.discourse_video_videos) return;
+
+      const video_string = post.discourse_video_videos.find(v => {
+        return v.indexOf(`${video_id}:`) === 0;
+      });
+      if (video_string) {
+        console.log(video_string);
+        const status = video_string.replace(`${video_id}:`, "");
+        console.log(status);
+        if (status === "ready") {
+          renderVideo($container, video_id);
+        } else if (status === "errored") {
+          renderPlaceholder($container, "errored");
+        } else {
+          renderPlaceholder($container, "pending");
+        }
+      } else {
+        renderPlaceholder($container, "unknown");
+      }
+    });
+  }
+
   api.decorateCooked(($elem, helper) => {
     if (helper) {
       const post = helper.getModel();
-      //console.log(post);
-      console.log(post.cooked);
-      let videoIdParts = post.cooked.split('[video=');
-      if (videoIdParts.length > 1) {
-        console.log(videoIdParts);
-        let videoId = videoIdParts[1].split(']')[0];
-        console.log(videoId);
-        renderVideo($elem, videoId);
-      }
+      renderVideos($elem, post);
     } else {
-      console.log('else');
-      //$("div[data-video-id]", $elem).html(
-      //  `<div class='icon-container'>${renderIcon("string", "film")}</div>`
-      //);
+      $("div[data-video-id]", $elem).html(
+        `<div class='icon-container'>${renderIcon("string", "film")}</div>`
+      );
     }
   });
+
+  api.registerCustomPostMessageCallback(
+    "discourse_video_video_changed",
+    (topicController, message) => {
+      let stream = topicController.get("model.postStream");
+      const post = stream.findLoadedPost(message.id);
+      stream.triggerChangedPost(message.id).then(() => {
+        const $post = $(`article[data-post-id=${message.id}]`);
+        renderVideos($post, post);
+      });
+    }
+  );
+
+  api.addComposerUploadHandler(
+    //siteSettings.discourse_video_file_extensions.split("|"),
+    file => {
+      Ember.run.next(() => {
+        const user = api.getCurrentUser();
+        if (
+          //user.trust_level >= siteSettings.brightcove_min_trust_level ||
+          user.staff
+        ) {
+          showModal("discourse-video-upload-modal").setProperties({
+            file
+          });
+        } else {
+          //bootbox.alert(
+          //  I18n.t("discourse_video.not_allowed", {
+          //    trust_level: siteSettings.discourse_video_min_trust_level,
+          //    trust_level_description: Discourse.Site.currentProp("trustLevels")
+          //      .findBy("id", siteSettings.discourse_video_min_trust_level)
+          //      .get("name")
+          //  })
+          //);
+        }
+      });
+    }
+  );
 
   api.onToolbarCreate(toolbar => {
     toolbar.addButton({

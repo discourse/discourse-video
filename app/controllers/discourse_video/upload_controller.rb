@@ -22,15 +22,15 @@ module DiscourseVideo
             video_id: result["data"]["id"],
             state: result["data"]["status"],
             user: current_user,
-            api_request_url: result["data"]["url"]
           )
+          api_request_url = result["data"]["url"]
         ensure
           video.save!
         end
 
         render json: {
           video_id: video.video_id,
-          api_request_url: video.api_request_url,
+          api_request_url: api_request_url,
           state: video.state
         }
       end
@@ -72,6 +72,7 @@ module DiscourseVideo
         video = DiscourseVideo::Video.find_by_asset_id(asset_id)
         if video
           video.playback_id = data["data"]["playback_ids"][0]["id"]
+          video.state = DiscourseVideo::Video::READY
           video.save!
           video.update_post_custom_fields!
           video.publish_change_to_clients!
