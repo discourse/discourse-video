@@ -176,9 +176,9 @@ export default Ember.Component.extend({
     this.sendAction("closeModal");
   },
 
-  @computed("file", "videoName")
-  uploadDisabled(file, videoName) {
-    return !(file && videoName);
+  @computed("file")
+  uploadDisabled(file) {
+    return !(file);
   },
 
   actions: {

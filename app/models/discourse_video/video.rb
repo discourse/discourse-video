@@ -3,11 +3,12 @@ module DiscourseVideo
     ERRORED = "errored"
     READY = "ready"
     PENDING = "pending"
+    WAITING = "waiting"
 
     belongs_to :user
 
-    #validates :state, inclusion: { in: %w(pending ready errored),
-    #                               message: "%{value} is not a valid state" }
+    validates :state, inclusion: { in: %w(pending ready errored waiting),
+                                   message: "%{value} is not a valid state" }
 
     def post_custom_fields
       PostCustomField.where(name: DiscourseVideo::POST_CUSTOM_FIELD_NAME).where("value LIKE ?", "#{self.video_id}%")

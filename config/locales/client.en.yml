@@ -1,0 +1,19 @@
+en:
+  js:
+    discourse_video:
+      modal_title: "Upload Video"
+      modal_subtitle: "Select a video to upload and embed"
+      select_file: "Select File"
+      file: "File"
+      upload_toolbar_title: Upload Video
+      upload_progress:
+        error: "An error has occurred"
+        preparing: "Preparing to upload"
+        starting: "Starging upload"
+        uploading: "Uploading... {{progress}}%"
+        finishing: "Finishing upload"
+        complete: "Upload complete {{info}}"
+      state:
+        errored: "Video Injest Error"
+        unknown: "Unknown Video"
+        pending: "Processing Video"

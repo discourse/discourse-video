@@ -12,10 +12,6 @@
       <input disabled={{uploading}} type="file" style="visibility: hidden; position: absolute;" onchange={{action "fileChanged"}} />
       </label>
     </p>
-    <h3>{{i18n "discourse_video.title"}}</h3>
-    <p>
-    {{input value=videoName disabled=uploading}}
-    </p>
     {{#if uploading}}
       {{uploadProgress}}
     {{else}}

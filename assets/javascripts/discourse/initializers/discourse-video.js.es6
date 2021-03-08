@@ -19,6 +19,10 @@ function initializeDiscourseVideo(api) {
       iconHtml: "<div class='spinner'></div>",
       string: I18n.t("discourse_video.state.pending")
     },
+    waiting: {
+      iconHtml: "<div class='spinner'></div>",
+      string: I18n.t("discourse_video.state.pending")
+    },
     errored: {
       iconHtml: renderIcon("string", "exclamation-triangle"),
       string: I18n.t("discourse_video.state.errored")
@@ -46,14 +50,15 @@ function initializeDiscourseVideo(api) {
       const video_string = post.discourse_video_videos.find(v => {
         return v.indexOf(`${video_id}:`) === 0;
       });
+
       if (video_string) {
-        console.log(video_string);
         const status = video_string.replace(`${video_id}:`, "");
-        console.log(status);
         if (status === "ready") {
           renderVideo($container, video_id);
         } else if (status === "errored") {
           renderPlaceholder($container, "errored");
+        } else if (status === "waiting") {
+          renderPlaceholder($container, "waiting");
         } else {
           renderPlaceholder($container, "pending");
         }
@@ -69,7 +74,7 @@ function initializeDiscourseVideo(api) {
       renderVideos($elem, post);
     } else {
       $("div[data-video-id]", $elem).html(
-        `<div class='icon-container'>${renderIcon("string", "film")}</div>`
+        `<div class='icon-container'>${renderIcon("string", "video")}</div>`
       );
     }
   });
@@ -116,7 +121,7 @@ function initializeDiscourseVideo(api) {
     toolbar.addButton({
       id: "discourse-video-upload",
       group: "insertions",
-      icon: "film",
+      icon: "video",
       title: "discourse_video.upload_toolbar_title",
       perform: () => {
         showModal("discourse-video-upload-modal");

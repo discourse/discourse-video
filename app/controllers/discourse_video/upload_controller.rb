@@ -11,9 +11,6 @@ module DiscourseVideo
                       only: [:webhook]
 
     def create
-      name = params.require(:name)
-      filename = params.require(:filename)
-
       hijack do
         begin
           direct_upload = MuxApi.create_direct_upload_2
@@ -42,7 +39,6 @@ module DiscourseVideo
         asset_response = MuxApi.get_playback_id(video_id)
         parsed_response = JSON.parse(asset_response)
         playback_ids = parsed_response["data"]["playback_ids"]
-        puts playback_ids
 
         render json: {
           playback_id: playback_ids.first
@@ -59,6 +55,7 @@ module DiscourseVideo
         video = DiscourseVideo::Video.find_by_video_id(upload_id)
         if video
           video.asset_id = data["data"]["asset_id"]
+          video.state = DiscourseVideo::Video::PENDING
           video.save!
         end
       end
