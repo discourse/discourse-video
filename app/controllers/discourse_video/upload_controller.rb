@@ -13,8 +13,8 @@ module DiscourseVideo
     def create
       hijack do
         begin
-          direct_upload = MuxApi.create_direct_upload_2
-          result = JSON.parse(direct_upload)
+          result = MuxApi.create_direct_upload_2
+          puts result
           video = DiscourseVideo::Video.new(
             video_id: result["data"]["id"],
             state: result["data"]["status"],
@@ -29,19 +29,6 @@ module DiscourseVideo
           video_id: video.video_id,
           api_request_url: api_request_url,
           state: video.state
-        }
-      end
-    end
-
-    def fetch_playback_id
-      video_id = params.require(:video_id)
-      hijack do
-        asset_response = MuxApi.get_playback_id(video_id)
-        parsed_response = JSON.parse(asset_response)
-        playback_ids = parsed_response["data"]["playback_ids"]
-
-        render json: {
-          playback_id: playback_ids.first
         }
       end
     end
