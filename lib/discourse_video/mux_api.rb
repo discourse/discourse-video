@@ -4,7 +4,7 @@ module DiscourseVideo
   class MuxApi
 
     def self.create_direct_upload_2
-			token_id = SiteSetting.discourse_video_mux_token_id
+      token_id = SiteSetting.discourse_video_mux_token_id
       token_secret = SiteSetting.discourse_video_mux_token_secret
       url = "https://api.mux.com/video/v1/uploads"
       auth = Base64.strict_encode64("#{token_id}:#{token_secret}")

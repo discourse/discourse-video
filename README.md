@@ -9,7 +9,7 @@ Features include:
 - Play videos via streaming so that you don't have to download the whole video
   to watch
 - Automatic video encoding
-- Videos are stored externally by mux so that they don't take up space on your
+- Videos are stored externally by Mux so that they don't take up space on your
   Discourse instance.
 
 ## Installation
