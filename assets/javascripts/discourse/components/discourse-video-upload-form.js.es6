@@ -41,7 +41,6 @@ export default Ember.Component.extend({
       data: { name: this.get("videoName"), filename: this.get("fileName") }
     })
       .then(videoInfo => {
-        //this.setupEvaporate(videoInfo);
         this.setupUpChunk(videoInfo);
       })
       .catch(reason => {
@@ -53,21 +52,7 @@ export default Ember.Component.extend({
 
   setupUpChunk(videoInfo) {
     this.setProgress("starting");
-
     this.set("videoInfo", videoInfo);
-    const config = {
-      //bucket: videoInfo["bucket"],
-      //aws_key: videoInfo["access_key_id"],
-      //signerUrl: `/brightcove/sign/${videoInfo["video_id"]}.json`,
-      //computeContentMd5: true,
-      //cryptoMd5Method: function(data) {
-      //  return btoa(SparkMD5.ArrayBuffer.hash(data, true));
-      //},
-      //cryptoHexEncodedHash256: function(data) {
-      //  return sha256(data);
-      //},
-      //logging: false
-    };
 
     const upload = UpChunk.createUpload({
       endpoint: videoInfo["api_request_url"],
@@ -92,79 +77,7 @@ export default Ember.Component.extend({
       console.log("Wrap it up, we're done here. 👋");
       this.uploadComplete();
     });
-
-    //Evaporate.create(config)
-    //  .then(evaporate => {
-    //    this.startEvaporateUpload(evaporate);
-    //  })
-    //  .catch(reason => {
-    //    console.error("Brightcove failed to initialize. Reason: ", reason);
-    //    this.setProgress("error");
-    //  });
   },
-
-  //startEvaporateUpload(evaporate) {
-  //  this.setProgress("uploading");
-
-  //  const videoInfo = this.get("videoInfo");
-
-  //  const headers = {
-  //    "X-Amz-Security-Token": videoInfo["session_token"]
-  //  };
-
-  //  const add_config = {
-  //    name: videoInfo["object_key"],
-  //    file: this.get("file"),
-  //    progress: progressValue => {
-  //      this.setProgress("uploading", {
-  //        progress: (progressValue * 100).toFixed(1)
-  //      });
-  //    },
-  //    xAmzHeadersAtInitiate: headers,
-  //    xAmzHeadersCommon: headers
-  //  };
-
-  //  evaporate
-  //    .add(add_config)
-  //    .then(() => {
-  //      this.ingestVideo();
-  //    })
-  //    .catch(reason => {
-  //      console.error("Brightcove upload failed. Reason: ", reason);
-  //      this.setProgress("error");
-  //    });
-  //},
-
-  //ingestVideo() {
-  //  this.setProgress("finishing");
-  //  const videoInfo = this.get("videoInfo");
-  //  ajax(`/brightcove/ingest/${videoInfo["video_id"]}`, {
-  //    type: "POST"
-  //  })
-  //    .then(() => {
-  //      this.ingestComplete();
-  //    })
-  //    .catch(error => {
-  //      console.error("Failed to ingest. Reason: ", error);
-  //      this.setProgress("error");
-  //    });
-  //},
-
-  //fetchPlaybackId() {
-  //  const videoInfo = this.get("videoInfo");
-  //  const videoId = videoInfo["video_id"]
-  //  ajax(`/discourse_video/playback_id/${videoId}`, {
-  //    type: "GET",
-  //  })
-  //    .then(playbackId => {
-  //      this.uploadComplete(playbackId);
-  //    })
-  //    .catch(reason => {
-  //      console.error("Could not get playbackId.", reason);
-  //      this.setProgress("error");
-  //      popupAjaxError(reason);
-  //    });
-  //},
 
   uploadComplete() {
     const videoInfo = this.get("videoInfo");

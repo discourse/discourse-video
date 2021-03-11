@@ -1,3 +1,8 @@
 en:
   site_settings:
     discourse_video_enabled: Enable the discourse-video plugin
+    discourse_video_mux_token_id: Mux Token ID for this application
+    discourse_video_mux_token_secret: Mux token secret for this application
+    discourse_video_min_trust_level: Minimum required trust level for uploading videos
+    discourse_video_file_extensions: A list of file extensions which can be uploaded
+    discourse_video_uploads_per_day_per_user: Maximum number of videos that a user can upload per day

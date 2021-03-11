@@ -4,10 +4,6 @@
 # authors: Blake Erickson
 # url: https://github.com/oblakeerickson/discourse-video
 
-gem 'ethon', '0.9.0' # required by typhoeus
-gem 'typhoeus', '1.0.2' # required by mux_ruby
-gem 'mux_ruby', '1.8.1'
-
 enabled_site_setting :discourse_video_enabled
 
 register_svg_icon "fa-video" if respond_to?(:register_svg_icon)
@@ -16,10 +12,8 @@ extend_content_security_policy(
   script_src: ["https://cdn.jsdelivr.net", "https://stream.mux.com"]
 )
 register_asset "vendor/hls.min.js"
-register_asset "vendor/mux-load-stream.js"
 register_asset "vendor/upchunk.js"
 
-#https://stream.mux.com/FC9pbuRQwEgiTPDmm5PoRRO5lRhVyHUE.m3u8
 %w{
   ../lib/discourse_video/engine.rb
   ../lib/discourse_video/mux_api.rb

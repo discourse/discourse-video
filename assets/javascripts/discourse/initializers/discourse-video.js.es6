@@ -92,12 +92,12 @@ function initializeDiscourseVideo(api) {
   );
 
   api.addComposerUploadHandler(
-    //siteSettings.discourse_video_file_extensions.split("|"),
+    siteSettings.discourse_video_file_extensions.split("|"),
     file => {
       Ember.run.next(() => {
         const user = api.getCurrentUser();
         if (
-          //user.trust_level >= siteSettings.brightcove_min_trust_level ||
+          user.trust_level >= siteSettings.discourse_video_min_trust_level ||
           user.staff
         ) {
           showModal("discourse-video-upload-modal").setProperties({

@@ -35,6 +35,7 @@ module DiscourseVideo
 
     def webhook
       data = JSON.parse(request.body.read)
+
       # Only process if it's a notification we care about
 
       if data["type"] == "video.upload.asset_created"
@@ -48,10 +49,6 @@ module DiscourseVideo
       end
 
       if data["type"] == "video.asset.ready"
-      #if data["entityType"] == "TITLE" && data["action"] == "CREATE"
-        #video_id = params.require(:video_id)
-        #secret = params.require(:secret)
-
         asset_id = data["object"]["id"]
         video = DiscourseVideo::Video.find_by_asset_id(asset_id)
         if video
@@ -61,16 +58,6 @@ module DiscourseVideo
           video.update_post_custom_fields!
           video.publish_change_to_clients!
         end
-        #raise Discourse::NotFound if video.nil? || video.callback_key.nil?
-
-        #raise Discourse::InvalidAccess unless video.callback_key == secret
-
-        #if data["status"] == "SUCCESS"
-        #  video.state = Brightcove::Video::READY
-        #else
-        #  video.state = Brightcove::Video::ERRORED
-        #end
-        #video.save!
       end
 
       render json: success_json
@@ -78,7 +65,7 @@ module DiscourseVideo
     end
 
     def check_upload_permission
-      #raise Discourse::InvalidAccess unless guardian.can_upload_to_brightcove?
+      #raise Discourse::InvalidAccess unless guardian.can_upload_video?
     end
 
   end
