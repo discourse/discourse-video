@@ -10,27 +10,10 @@
 </style>
 </head>
 <body>
-  <video id="myVideo" class="video-js" controls></video>
+  <video id="myVideo" class="video-js" data-playbackid="<%= @playback_id %>" controls></video>
 
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <script>
-    (function(){
-      // Replace with your asset's playback ID
-      var playbackId = "<%= @playback_id %>";
-      var url = "https://stream.mux.com/"+playbackId+".m3u8";
-      var video = document.getElementById("myVideo");
-
-      // Let native HLS support handle it if possible
-      if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = url;
-      } else if (Hls.isSupported()) {
-        // HLS.js-specific setup code
-        hls = new Hls();
-        hls.loadSource(url);
-        hls.attachMedia(video);
-      }
-    })();
-  </script>
+  <script src="/plugins/discourse-video/javascripts/hls.min.js"></script>
+  <script src="/plugins/discourse-video/javascripts/discourse-video-playback.js"></script>
 
 
   <!-- Use HLS.js to support the HLS format in browsers. -->
