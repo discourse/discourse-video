@@ -6,13 +6,7 @@
 
 enabled_site_setting :discourse_video_enabled
 
-register_svg_icon "fa-video" if respond_to?(:register_svg_icon)
-
-extend_content_security_policy(
-  script_src: ["https://cdn.jsdelivr.net", "https://stream.mux.com"]
-)
-register_asset "vendor/hls.min.js"
-register_asset "vendor/upchunk.js"
+register_svg_icon "fa-video"
 
 %w{
   ../lib/discourse_video/engine.rb

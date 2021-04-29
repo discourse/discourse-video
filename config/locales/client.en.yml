@@ -9,7 +9,7 @@ en:
       upload_progress:
         error: "An error has occurred"
         preparing: "Preparing to upload"
-        starting: "Starging upload"
+        starting: "Starting upload"
         uploading: "Uploading... {{progress}}%"
         finishing: "Finishing upload"
         complete: "Upload complete {{info}}"
