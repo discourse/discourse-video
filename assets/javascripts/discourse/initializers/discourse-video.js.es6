@@ -1,3 +1,5 @@
+import loadScript from "discourse/lib/load-script";
+import { ajax } from "discourse/lib/ajax";
 import { withPluginApi } from "discourse/lib/plugin-api";
 import showModal from "discourse/lib/show-modal";
 import { renderIcon } from "discourse-common/lib/icon-library";
@@ -5,39 +7,51 @@ import { renderIcon } from "discourse-common/lib/icon-library";
 function initializeDiscourseVideo(api) {
   const siteSettings = api.container.lookup("site-settings:main");
 
-  function renderVideo($container, videoId) {
-    $container.removeAttr("data-video-id");
-    const $videoElem = $("<iframe/>").attr({
-      src: `${Discourse.BaseUri}/discourse_video/${videoId}`,
-      class: "discourse_video"
+  function renderVideo(videoContainer, videoId) {
+    loadScript("/plugins/discourse-video/javascripts/hls.min.js").then(() => {
+      ajax(`/discourse_video/playback_id/${videoId}`).then((data) => {
+        let video = document.createElement("video");
+        video.className = "mux-video";
+        video.controls = "controls";
+        videoContainer[0].appendChild(video);
+
+        const url = `https://stream.mux.com/${data.playback_id}.m3u8`;
+
+        // // Let native HLS support handle it if possible
+        if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          video.src = url;
+        } else if (Hls.isSupported()) {
+          // HLS.js-specific setup code
+          hls = new Hls();
+          hls.loadSource(url);
+          hls.attachMedia(video);
+        }
+      });
     });
-    $container.html($videoElem);
   }
 
   const placeholders = {
     pending: {
       iconHtml: "<div class='spinner'></div>",
-      string: I18n.t("discourse_video.state.pending")
+      string: I18n.t("discourse_video.state.pending"),
     },
     waiting: {
       iconHtml: "<div class='spinner'></div>",
-      string: I18n.t("discourse_video.state.pending")
+      string: I18n.t("discourse_video.state.pending"),
     },
     errored: {
       iconHtml: renderIcon("string", "exclamation-triangle"),
-      string: I18n.t("discourse_video.state.errored")
+      string: I18n.t("discourse_video.state.errored"),
     },
     unknown: {
       iconHtml: renderIcon("string", "question-circle"),
-      string: I18n.t("discourse_video.state.unknown")
-    }
+      string: I18n.t("discourse_video.state.unknown"),
+    },
   };
 
   function renderPlaceholder($container, type) {
     $container.html(
-      `<div class='icon-container'><span class='discourse-video-message'>${
-        placeholders[type].iconHtml
-      } ${placeholders[type].string}</span></div>`
+      `<div class='icon-container'><span class='discourse-video-message'>${placeholders[type].iconHtml} ${placeholders[type].string}</span></div>`
     );
   }
 
@@ -47,7 +61,7 @@ function initializeDiscourseVideo(api) {
       const video_id = $container.data("video-id").toString();
       if (!post.discourse_video_videos) return;
 
-      const video_string = post.discourse_video_videos.find(v => {
+      const video_string = post.discourse_video_videos.find((v) => {
         return v.indexOf(`${video_id}:`) === 0;
       });
 
@@ -93,7 +107,7 @@ function initializeDiscourseVideo(api) {
 
   api.addComposerUploadHandler(
     siteSettings.discourse_video_file_extensions.split("|"),
-    file => {
+    (file) => {
       Ember.run.next(() => {
         const user = api.getCurrentUser();
         if (
@@ -101,7 +115,7 @@ function initializeDiscourseVideo(api) {
           user.staff
         ) {
           showModal("discourse-video-upload-modal").setProperties({
-            file
+            file,
           });
         } else {
           //bootbox.alert(
@@ -117,7 +131,7 @@ function initializeDiscourseVideo(api) {
     }
   );
 
-  api.onToolbarCreate(toolbar => {
+  api.onToolbarCreate((toolbar) => {
     toolbar.addButton({
       id: "discourse-video-upload",
       group: "insertions",
@@ -125,10 +139,9 @@ function initializeDiscourseVideo(api) {
       title: "discourse_video.upload_toolbar_title",
       perform: () => {
         showModal("discourse-video-upload-modal");
-      }
+      },
     });
   });
-
 }
 
 export default {
@@ -140,5 +153,5 @@ export default {
     if (siteSettings.discourse_video_enabled) {
       withPluginApi("0.8.31", initializeDiscourseVideo);
     }
-  }
+  },
 };
