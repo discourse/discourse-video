@@ -6,6 +6,7 @@
 
 enabled_site_setting :discourse_video_enabled
 
+register_asset "vendor/upchunk.js"
 register_svg_icon "fa-video"
 
 %w{
