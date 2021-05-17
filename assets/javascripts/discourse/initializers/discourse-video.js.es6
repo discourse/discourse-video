@@ -22,7 +22,7 @@ function initializeDiscourseVideo(api) {
           video.src = url;
         } else if (Hls.isSupported()) {
           // HLS.js-specific setup code
-          hls = new Hls();
+          let hls = new Hls();
           hls.loadSource(url);
           hls.attachMedia(video);
         }

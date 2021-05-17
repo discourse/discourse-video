@@ -1,4 +1,4 @@
-import { default as computed } from "ember-addons/ember-computed-decorators";
+import discourseComputed from "discourse-common/utils/decorators";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 
@@ -7,12 +7,12 @@ const Upchunk = window.Upchunk;
 export default Ember.Component.extend({
   file: null,
 
-  @computed("file")
+  @discourseComputed("file")
   fileName(file) {
     return file.name;
   },
 
-  @computed("file")
+  @discourseComputed("file")
   fileSize(file) {
     return this.humanFilesize(file.size);
   },
@@ -89,7 +89,7 @@ export default Ember.Component.extend({
     this.sendAction("closeModal");
   },
 
-  @computed("file")
+  @discourseComputed("file")
   uploadDisabled(file) {
     return !(file);
   },
