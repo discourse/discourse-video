@@ -20,9 +20,11 @@ function initializeDiscourseVideo(api) {
         // // Let native HLS support handle it if possible
         if (video.canPlayType("application/vnd.apple.mpegurl")) {
           video.src = url;
+          /* eslint-disable no-undef */
         } else if (Hls.isSupported()) {
           // HLS.js-specific setup code
           let hls = new Hls();
+          /* eslint-enable no-undef */
           hls.loadSource(url);
           hls.attachMedia(video);
         }
@@ -59,7 +61,9 @@ function initializeDiscourseVideo(api) {
     $("div[data-video-id]", $elem).each((index, container) => {
       const $container = $(container);
       const video_id = $container.data("video-id").toString();
-      if (!post.discourse_video_videos) return;
+      if (!post.discourse_video_videos) {
+        return;
+      }
 
       const video_string = post.discourse_video_videos.find((v) => {
         return v.indexOf(`${video_id}:`) === 0;
