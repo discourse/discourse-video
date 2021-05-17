@@ -38,12 +38,12 @@ export default Ember.Component.extend({
     this.setProgress("preparing");
     ajax("/discourse_video/create", {
       type: "POST",
-      data: { name: this.get("videoName"), filename: this.get("fileName") }
+      data: { name: this.get("videoName"), filename: this.get("fileName") },
     })
-      .then(videoInfo => {
+      .then((videoInfo) => {
         this.setupUpChunk(videoInfo);
       })
-      .catch(reason => {
+      .catch((reason) => {
         console.error("Could not create video.", reason);
         this.setProgress("error");
         popupAjaxError(reason);
@@ -61,19 +61,18 @@ export default Ember.Component.extend({
     });
 
     // subscribe to events
-    upload.on('error', err => {
-      console.error('💥 🙀', err.detail);
+    upload.on("error", (err) => {
+      console.error("💥 🙀", err.detail);
     });
 
-    upload.on('progress', progress => {
+    upload.on("progress", (progress) => {
       console.log(`So far we've uploaded ${progress.detail}% of this file.`);
       this.setProgress("uploading", {
-        progress: progress.detail.toFixed(1)
+        progress: progress.detail.toFixed(1),
       });
-
     });
 
-    upload.on('success', () => {
+    upload.on("success", () => {
       console.log("Wrap it up, we're done here. 👋");
       this.uploadComplete();
     });
@@ -91,7 +90,7 @@ export default Ember.Component.extend({
 
   @discourseComputed("file")
   uploadDisabled(file) {
-    return !(file);
+    return !file;
   },
 
   actions: {
@@ -103,7 +102,6 @@ export default Ember.Component.extend({
 
     upload() {
       this.createVideoObject();
-    }
-  }
-
+    },
+  },
 });
