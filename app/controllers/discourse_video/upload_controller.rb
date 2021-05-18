@@ -18,7 +18,7 @@ module DiscourseVideo
           video = DiscourseVideo::Video.new(
             video_id: result["data"]["id"],
             state: result["data"]["status"],
-            user: current_user,
+            user: current_user
           )
           api_request_url = result["data"]["url"]
         ensure
