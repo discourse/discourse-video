@@ -21,7 +21,7 @@ after_initialize do
 
   register_post_custom_field_type('discourse_video', :string)
 
-  topic_view_post_custom_fields_whitelister do |user|
+  topic_view_post_custom_fields_allowlister do |user|
     DiscourseVideo::POST_CUSTOM_FIELD_NAME
   end
 

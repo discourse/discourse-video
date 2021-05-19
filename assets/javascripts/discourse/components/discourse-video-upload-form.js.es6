@@ -2,7 +2,7 @@ import discourseComputed from "discourse-common/utils/decorators";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 
-const UPCHUNK = window.Upchunk;
+const UPCHUNK = window.UpChunk;
 
 export default Ember.Component.extend({
   file: null,
