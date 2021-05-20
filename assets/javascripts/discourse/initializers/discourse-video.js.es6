@@ -92,7 +92,9 @@ function initializeDiscourseVideo(api) {
       renderVideos($elem, post);
     } else {
       $("div[data-video-id]", $elem).html(
-        `<div class='icon-container'>${renderIcon("string", "video")}</div>`
+        `<p><div class=\"onebox-placeholder-container\">
+          <span class=\"placeholder-icon video\"></span>
+        </div></p>`
       );
     }
   });
