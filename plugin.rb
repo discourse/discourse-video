@@ -31,6 +31,7 @@ after_initialize do
 
   on(:post_process_cooked) do |doc, post|
     video_ids = []
+
     doc.css("div/@data-video-id").each do |media|
       if video = DiscourseVideo::Video.find_by_video_id(media.value)
         video_ids << video.post_custom_field_value
@@ -50,6 +51,7 @@ after_initialize do
         PostCustomField.create!(params)
       end
     end
-  end
 
+    post.publish_change_to_clients! :discourse_video_video_changed
+  end
 end
