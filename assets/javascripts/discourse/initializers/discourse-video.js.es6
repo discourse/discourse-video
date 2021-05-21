@@ -81,7 +81,7 @@ function initializeDiscourseVideo(api) {
           renderPlaceholder($container, "pending");
         }
       } else {
-        renderPlaceholder($container, "unknown");
+        renderPlaceholder($container, "waiting");
       }
     });
   }
