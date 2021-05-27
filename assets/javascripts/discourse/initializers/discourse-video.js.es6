@@ -81,7 +81,7 @@ function initializeDiscourseVideo(api) {
           renderPlaceholder($container, "pending");
         }
       } else {
-        renderPlaceholder($container, "unknown");
+        renderPlaceholder($container, "waiting");
       }
     });
   }
@@ -104,7 +104,11 @@ function initializeDiscourseVideo(api) {
     (topicController, message) => {
       let stream = topicController.get("model.postStream");
       const post = stream.findLoadedPost(message.id);
+
       stream.triggerChangedPost(message.id).then(() => {
+        $(
+          `article[data-post-id=${message.id}] .discourse-video-message`
+        ).remove();
         const $post = $(`article[data-post-id=${message.id}]`);
         renderVideos($post, post);
       });

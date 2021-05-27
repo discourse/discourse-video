@@ -24,7 +24,7 @@ module DiscourseVideo
 
     def publish_change_to_clients!
       Post.find(post_custom_fields.pluck(:post_id)).each do |post|
-        post.publish_change_to_clients!(:discourse_video_changed)
+        post.publish_change_to_clients! :discourse_video_video_changed
       end
     end
 
