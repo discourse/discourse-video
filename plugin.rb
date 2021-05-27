@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # name: discourse-video
 # about: Improved video upload and playback experience.
 # version: 0.1
@@ -7,6 +9,9 @@
 enabled_site_setting :discourse_video_enabled
 
 register_asset "vendor/upchunk.js"
+register_asset 'stylesheets/common/discourse-video.scss'
+register_asset 'stylesheets/desktop/discourse-video.scss', :desktop
+register_asset 'stylesheets/mobile/discourse-video.scss', :mobile
 register_svg_icon "fa-video"
 
 %w{
