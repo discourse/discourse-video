@@ -1,0 +1,20 @@
+.discourse-video-message {
+  display: block;
+  width: 100%;
+  padding: 18% 0 22% 0;
+  background-color: var(--primary-low);
+
+  .video-state {
+    text-align: center;
+  }
+
+  .video-state-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.mux-video {
+  width: 100%;
+}

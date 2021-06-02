@@ -53,7 +53,12 @@ function initializeDiscourseVideo(api) {
 
   function renderPlaceholder($container, type) {
     $container.html(
-      `<div class='icon-container'><span class='discourse-video-message'>${placeholders[type].iconHtml} ${placeholders[type].string}</span></div>`
+      `<div class='icon-container'>
+        <div class='discourse-video-message'>
+          <div class='video-state-icon'>${placeholders[type].iconHtml}</div>
+          <div class='video-state'>${placeholders[type].string}</div>
+        </div>
+      </div>`
     );
   }
 
@@ -92,8 +97,8 @@ function initializeDiscourseVideo(api) {
       renderVideos($elem, post);
     } else {
       $("div[data-video-id]", $elem).html(
-        `<p><div class=\"onebox-placeholder-container\">
-          <span class=\"placeholder-icon video\"></span>
+        `<p><div class="onebox-placeholder-container">
+          <span class="placeholder-icon video"></span>
         </div></p>`
       );
     }
