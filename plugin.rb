@@ -9,6 +9,10 @@ enabled_site_setting :discourse_video_enabled
 register_asset "vendor/upchunk.js"
 register_svg_icon "fa-video"
 
+extend_content_security_policy(
+  worker_src: ['blob:']
+)
+
 %w{
   ../lib/discourse_video/engine.rb
   ../lib/discourse_video/mux_api.rb
