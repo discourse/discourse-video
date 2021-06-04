@@ -11,6 +11,10 @@ module DiscourseVideo
                       only: [:webhook]
 
     def create
+      unless params["filename"].match? Regexp.new SiteSetting.discourse_video_file_extensions
+        raise Discourse::InvalidParameters, I18n.t("post.errors.upload_not_authorized", authorized_extensions: SiteSetting.discourse_video_file_extensions.gsub("|", ", "))
+      end
+
       hijack do
         begin
           result = MuxApi.create_direct_upload_2

@@ -1,6 +1,7 @@
 import discourseComputed from "discourse-common/utils/decorators";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
+import I18n from "I18n";
 
 const UPCHUNK = window.UpChunk;
 
@@ -111,7 +112,21 @@ export default Ember.Component.extend({
     },
 
     upload() {
-      this.createVideoObject();
+      const Regexp = new RegExp(
+        this.siteSettings.discourse_video_file_extensions
+      );
+      if (Regexp.test(this.file.name) && this.file.size > 0) {
+        this.createVideoObject();
+      } else {
+        bootbox.alert(
+          I18n.t("post.errors.upload_not_authorized", {
+            authorized_extensions: this.siteSettings.discourse_video_file_extensions.replaceAll(
+              "|",
+              ", "
+            ),
+          })
+        );
+      }
     },
   },
 });
