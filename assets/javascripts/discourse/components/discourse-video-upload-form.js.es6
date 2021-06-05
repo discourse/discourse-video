@@ -102,6 +102,21 @@ export default Ember.Component.extend({
     return !file;
   },
 
+  videoExtensionsToArray() {
+    return this.siteSettings.discourse_video_file_extensions
+      .toLowerCase()
+      .replace(/[\s\.]+/g, "")
+      .split("|")
+      .filter((ext) => ext.indexOf("*") === -1);
+  },
+
+  isAuthorizedVideo(fileName) {
+    return new RegExp(
+      "\\.(" + this.videoExtensionsToArray().join("|") + ")$",
+      "i"
+    ).test(fileName);
+  },
+
   actions: {
     fileChanged(event) {
       /* eslint-disable no-console */
@@ -112,10 +127,7 @@ export default Ember.Component.extend({
     },
 
     upload() {
-      const Regexp = new RegExp(
-        this.siteSettings.discourse_video_file_extensions
-      );
-      if (Regexp.test(this.file.name) && this.file.size > 0) {
+      if (this.isAuthorizedVideo(this.file.name) && this.file.size > 0) {
         this.createVideoObject();
       } else {
         bootbox.alert(

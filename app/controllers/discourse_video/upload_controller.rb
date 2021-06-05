@@ -11,7 +11,7 @@ module DiscourseVideo
                       only: [:webhook]
 
     def create
-      unless params["filename"].match? Regexp.new SiteSetting.discourse_video_file_extensions
+      unless is_authorised_video? params["filename"]
         raise Discourse::InvalidParameters, I18n.t("post.errors.upload_not_authorized", authorized_extensions: SiteSetting.discourse_video_file_extensions.gsub("|", ", "))
       end
 
@@ -72,5 +72,18 @@ module DiscourseVideo
       #raise Discourse::InvalidAccess unless guardian.can_upload_video?
     end
 
+    private
+
+    def is_authorised_video?(filename)
+      filename.match? Regexp.new "\\.(#{video_extensions_to_array.join("|")})", Regexp::IGNORECASE
+    end
+
+    def video_extensions_to_array
+      SiteSetting.discourse_video_file_extensions
+        .downcase
+        .gsub(/[\s\.]+/, "")
+        .split("|")
+        .select { |ext| ext.index("*") != -1 }
+    end
   end
 end
