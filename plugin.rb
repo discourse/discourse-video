@@ -34,6 +34,10 @@ after_initialize do
     DiscourseVideo::POST_CUSTOM_FIELD_NAME
   end
 
+  add_to_class(:guardian, :can_upload_video?) do
+    @user.trust_level >= SiteSetting.discourse_video_min_trust_level
+  end
+
   add_to_serializer(:post, :discourse_video_videos, false) do
     Array(post_custom_fields[DiscourseVideo::POST_CUSTOM_FIELD_NAME])
   end
