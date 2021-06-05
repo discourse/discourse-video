@@ -131,11 +131,8 @@ export default Ember.Component.extend({
         this.createVideoObject();
       } else {
         bootbox.alert(
-          I18n.t("post.errors.upload_not_authorized", {
-            authorized_extensions: this.siteSettings.discourse_video_file_extensions.replaceAll(
-              "|",
-              ", "
-            ),
+          I18n.t("discourse_video.post.errors.upload_not_authorized", {
+            authorized_extensions: this.videoExtensionsToArray().join(", "),
           })
         );
       }

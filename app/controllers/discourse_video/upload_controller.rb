@@ -12,7 +12,7 @@ module DiscourseVideo
 
     def create
       unless is_authorised_video? params["filename"]
-        raise Discourse::InvalidParameters, I18n.t("post.errors.upload_not_authorized", authorized_extensions: SiteSetting.discourse_video_file_extensions.gsub("|", ", "))
+        raise Discourse::InvalidParameters, I18n.t("discourse_video.post.errors.upload_not_authorized", authorized_extensions: video_extensions_to_array.join(", "))
       end
 
       hijack do
