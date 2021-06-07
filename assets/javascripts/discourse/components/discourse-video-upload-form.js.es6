@@ -1,6 +1,7 @@
 import discourseComputed from "discourse-common/utils/decorators";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
+import I18n from "I18n";
 
 const UPCHUNK = window.UpChunk;
 
@@ -101,6 +102,21 @@ export default Ember.Component.extend({
     return !file;
   },
 
+  videoExtensionsToArray() {
+    return this.siteSettings.discourse_video_file_extensions
+      .toLowerCase()
+      .replace(/[\s\.]+/g, "")
+      .split("|")
+      .filter((ext) => ext.indexOf("*") === -1);
+  },
+
+  isAuthorizedVideo(fileName) {
+    return new RegExp(
+      "\\.(" + this.videoExtensionsToArray().join("|") + ")$",
+      "i"
+    ).test(fileName);
+  },
+
   actions: {
     fileChanged(event) {
       /* eslint-disable no-console */
@@ -111,7 +127,15 @@ export default Ember.Component.extend({
     },
 
     upload() {
-      this.createVideoObject();
+      if (this.isAuthorizedVideo(this.file.name) && this.file.size > 0) {
+        this.createVideoObject();
+      } else {
+        bootbox.alert(
+          I18n.t("discourse_video.post.errors.upload_not_authorized", {
+            authorized_extensions: this.videoExtensionsToArray().join(", "),
+          })
+        );
+      }
     },
   },
 });

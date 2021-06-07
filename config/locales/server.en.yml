@@ -6,3 +6,7 @@ en:
     discourse_video_min_trust_level: Minimum required trust level for uploading videos
     discourse_video_file_extensions: A list of file extensions which can be uploaded
     discourse_video_uploads_per_day_per_user: Maximum number of videos that a user can upload per day
+  discourse_video:
+    post:
+      errors:
+        upload_not_authorized: "Sorry, the file you are trying to upload is not authorized (authorized video extensions: %{authorized_extensions})."

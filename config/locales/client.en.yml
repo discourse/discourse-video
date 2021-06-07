@@ -17,3 +17,6 @@ en:
         errored: "Video Injest Error"
         unknown: "Unknown Video"
         pending: "Processing Video"
+      post:
+        errors:
+          upload_not_authorized: "Sorry, the file you are trying to upload is not authorized (authorized video extensions: %{authorized_extensions})."
