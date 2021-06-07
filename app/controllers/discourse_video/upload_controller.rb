@@ -69,7 +69,7 @@ module DiscourseVideo
     end
 
     def check_upload_permission
-      #raise Discourse::InvalidAccess unless guardian.can_upload_video?
+      raise Discourse::InvalidAccess unless guardian.can_upload_video?
     end
 
     private

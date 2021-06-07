@@ -3,9 +3,11 @@ import { ajax } from "discourse/lib/ajax";
 import { withPluginApi } from "discourse/lib/plugin-api";
 import showModal from "discourse/lib/show-modal";
 import { renderIcon } from "discourse-common/lib/icon-library";
+import I18n from "I18n";
 
 function initializeDiscourseVideo(api) {
   const siteSettings = api.container.lookup("site-settings:main");
+  const user = api.getCurrentUser();
 
   function renderVideo(videoContainer, videoId) {
     loadScript("/plugins/discourse-video/javascripts/hls.min.js").then(() => {
@@ -104,59 +106,50 @@ function initializeDiscourseVideo(api) {
     }
   });
 
-  api.registerCustomPostMessageCallback(
-    "discourse_video_video_changed",
-    (topicController, message) => {
-      let stream = topicController.get("model.postStream");
-      const post = stream.findLoadedPost(message.id);
+  if (
+    user &&
+    (user.trust_level >= siteSettings.discourse_video_min_trust_level ||
+      user.staff)
+  ) {
+    api.registerCustomPostMessageCallback(
+      "discourse_video_video_changed",
+      (topicController, message) => {
+        let stream = topicController.get("model.postStream");
+        const post = stream.findLoadedPost(message.id);
 
-      stream.triggerChangedPost(message.id).then(() => {
-        $(
-          `article[data-post-id=${message.id}] .discourse-video-message`
-        ).remove();
-        const $post = $(`article[data-post-id=${message.id}]`);
-        renderVideos($post, post);
-      });
-    }
-  );
+        stream.triggerChangedPost(message.id).then(() => {
+          $(
+            `article[data-post-id=${message.id}] .discourse-video-message`
+          ).remove();
+          const $post = $(`article[data-post-id=${message.id}]`);
+          renderVideos($post, post);
+        });
+      }
+    );
 
-  api.addComposerUploadHandler(
-    siteSettings.discourse_video_file_extensions.split("|"),
-    (file) => {
-      Ember.run.next(() => {
-        const user = api.getCurrentUser();
-        if (
-          user.trust_level >= siteSettings.discourse_video_min_trust_level ||
-          user.staff
-        ) {
+    api.addComposerUploadHandler(
+      siteSettings.discourse_video_file_extensions.split("|"),
+      (file) => {
+        Ember.run.next(() => {
           showModal("discourse-video-upload-modal").setProperties({
             file,
           });
-        } else {
-          //bootbox.alert(
-          //  I18n.t("discourse_video.not_allowed", {
-          //    trust_level: siteSettings.discourse_video_min_trust_level,
-          //    trust_level_description: Discourse.Site.currentProp("trustLevels")
-          //      .findBy("id", siteSettings.discourse_video_min_trust_level)
-          //      .get("name")
-          //  })
-          //);
-        }
-      });
-    }
-  );
+        });
+      }
+    );
 
-  api.onToolbarCreate((toolbar) => {
-    toolbar.addButton({
-      id: "discourse-video-upload",
-      group: "insertions",
-      icon: "video",
-      title: "discourse_video.upload_toolbar_title",
-      perform: () => {
-        showModal("discourse-video-upload-modal");
-      },
+    api.onToolbarCreate((toolbar) => {
+      toolbar.addButton({
+        id: "discourse-video-upload",
+        group: "insertions",
+        icon: "video",
+        title: "discourse_video.upload_toolbar_title",
+        perform: () => {
+          showModal("discourse-video-upload-modal");
+        },
+      });
     });
-  });
+  }
 }
 
 export default {
