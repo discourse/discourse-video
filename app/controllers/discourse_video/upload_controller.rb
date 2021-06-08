@@ -40,7 +40,7 @@ module DiscourseVideo
     end
 
     def webhook
-      raise Discourse::InvalidAccess if !verified_signature?(request)
+      raise Discourse::InvalidAccess unless verified_signature?(request)
 
       data = JSON.parse(request.body.read)
 
