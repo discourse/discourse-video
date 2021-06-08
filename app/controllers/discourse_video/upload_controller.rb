@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module DiscourseVideo
   class UploadController < ::ApplicationController
     requires_plugin DiscourseVideo
@@ -38,6 +39,8 @@ module DiscourseVideo
     end
 
     def webhook
+      raise Discourse::InvalidAccess if !verified_signature?(request)
+
       data = JSON.parse(request.body.read)
 
       # Only process if it's a notification we care about
@@ -84,6 +87,23 @@ module DiscourseVideo
         .gsub(/[\s\.]+/, "")
         .split("|")
         .select { |ext| ext.index("*") != -1 }
+    end
+
+    def verified_signature?(request)
+      mux_signature = request.headers["Mux-Signature"]
+
+      return if !mux_signature
+
+      mux_sig_array = mux_signature.split(",")
+
+      return if !mux_sig_array || !mux_sig_array[0] || !mux_sig_array[1]
+
+      mux_timestamp = mux_sig_array[0].gsub("t=", "")
+      mux_hash = mux_sig_array[1].gsub("v1=", "")
+      payload = "#{mux_timestamp}.#{request.body.string}"
+      our_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha256'), SiteSetting.discourse_video_mux_webhook_signing_secret, payload)
+
+      our_signature == mux_hash
     end
   end
 end
