@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module DiscourseVideo
   class UploadController < ::ApplicationController
     requires_plugin DiscourseVideo
