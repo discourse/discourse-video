@@ -7,13 +7,16 @@ plugins:
   discourse_video_mux_token_secret:
     default: ""
     secret: true
+  discourse_video_mux_webhook_signing_secret:
+    default: ""
+    secret: true
   discourse_video_min_trust_level:
     default: 1
-    enum: 'TrustLevelSetting'
+    enum: "TrustLevelSetting"
     client: true
   discourse_video_file_extensions:
     default: "mp4|mov|wmv|avi|mkv|mpg|mpeg|ogg"
-    type: 'list'
+    type: "list"
     client: true
     list_type: compact
   discourse_video_uploads_per_day_per_user:
