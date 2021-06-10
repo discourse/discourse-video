@@ -106,11 +106,7 @@ function initializeDiscourseVideo(api) {
     }
   });
 
-  if (
-    user &&
-    (user.trust_level >= siteSettings.discourse_video_min_trust_level ||
-      user.staff)
-  ) {
+  if (user && user.can_upload_video) {
     api.registerCustomPostMessageCallback(
       "discourse_video_video_changed",
       (topicController, message) => {

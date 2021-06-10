@@ -44,6 +44,10 @@ after_initialize do
     Array(post_custom_fields[DiscourseVideo::POST_CUSTOM_FIELD_NAME])
   end
 
+  add_to_serializer(:current_user, :can_upload_video) do
+    Guardian.new(scope.user).can_upload_video?
+  end
+
   on(:post_process_cooked) do |doc, post|
     video_ids = []
 
