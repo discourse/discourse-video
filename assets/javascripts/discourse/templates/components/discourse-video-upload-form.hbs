@@ -9,7 +9,7 @@
     {{#if file}}{{fileName}} ({{fileSize}}){{/if}}
     <label class="btn" disabled={{uploading}} title={{i18n "discourse_video.select_file"}}>
       {{d-icon "video"}}&nbsp;{{i18n "discourse_video.select_file"}}
-      <input disabled={{uploading}} type="file" style="visibility: hidden; position: absolute;" onchange={{action "fileChanged"}} />
+      <input disabled={{uploading}} type="file" style="visibility: hidden; position: absolute;" onchange={{action "fileChanged"}}>
     </label>
   </p>
   {{#if uploading}}
