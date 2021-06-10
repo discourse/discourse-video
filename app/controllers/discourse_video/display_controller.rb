@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DiscourseVideo
   class DisplayController < ::ApplicationController
     skip_before_action :check_xhr
