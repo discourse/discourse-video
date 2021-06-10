@@ -12,9 +12,23 @@ describe Guardian do
   let(:adminGuardian) { Guardian.new(admin) }
   let(:moderatorGuardian) { Guardian.new(moderator) }
 
+  before do
+    SiteSetting.discourse_video_enabled = true
+  end
+
   describe "can_upload_video?" do
     it "returns true for users having specified trust level" do
       expect(guardian.can_upload_video?).to eq(true)
+    end
+
+    it "returns false for users not having specified trust level" do
+      expect(guardian1.can_upload_video?).to eq(false)
+    end
+
+    it "returns true if user is admin/moderator" do
+      expect(adminGuardian.can_upload_video?).to eq(true)
+
+      expect(moderatorGuardian.can_upload_video?).to eq(true)
     end
   end
 end
