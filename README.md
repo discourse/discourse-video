@@ -16,7 +16,7 @@ Features include:
 
 Follow the [Install Plugins in
 Discourse](https://meta.discourse.org/t/install-plugins-in-discourse/19157)
-guide, using git clone https://github.com/oblakeerickson/discourse-video.git as
+guide, using git clone https://github.com/discourse/discourse-video.git as
 the plugin command.
 
 ## Setup
