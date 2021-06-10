@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DiscourseVideo
   class Video < ActiveRecord::Base
     ERRORED = "errored"

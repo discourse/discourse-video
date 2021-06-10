@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DiscourseVideo
   POST_CUSTOM_FIELD_NAME = "discourse_video"
 

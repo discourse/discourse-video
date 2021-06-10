@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateDiscourseVideoVideos < ActiveRecord::Migration[6.0]
   def change
     create_table :discourse_video_videos do |t|
