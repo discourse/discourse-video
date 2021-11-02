@@ -44,22 +44,28 @@ module DiscourseVideo
 
       data = JSON.parse(request.body.read)
 
-      # Only process if it's a notification we care about
+      # Only process if it's a notification we care about.
+      # Notifications could arrive out of order so be sure they don't overwrite
+      #  state they shouldn't.
 
       if data["type"] == "video.upload.asset_created"
         upload_id = data["object"]["id"]
         video = DiscourseVideo::Video.find_by_video_id(upload_id)
         if video
           video.asset_id = data["data"]["asset_id"]
-          video.state = DiscourseVideo::Video::PENDING
+          if video.state != DiscourseVideo::Video::READY
+            video.state = DiscourseVideo::Video::PENDING
+          end
           video.save!
         end
       end
 
       if data["type"] == "video.asset.ready"
         asset_id = data["object"]["id"]
-        video = DiscourseVideo::Video.find_by_asset_id(asset_id)
+        upload_id = data["object"]["upload_id"]
+        video = DiscourseVideo::Video.find_by_video_id(upload_id)
         if video
+          video.asset_id = asset_id unless video.asset_id
           video.playback_id = data["data"]["playback_ids"][0]["id"]
           video.state = DiscourseVideo::Video::READY
           video.save!
