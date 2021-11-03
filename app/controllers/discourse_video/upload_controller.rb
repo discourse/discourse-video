@@ -20,7 +20,6 @@ module DiscourseVideo
       hijack do
         begin
           result = MuxApi.create_direct_upload_2
-          puts result
           video = DiscourseVideo::Video.new(
             video_id: result["data"]["id"],
             state: result["data"]["status"],
@@ -62,7 +61,7 @@ module DiscourseVideo
 
       if data["type"] == "video.asset.ready"
         asset_id = data["object"]["id"]
-        upload_id = data["object"]["upload_id"]
+        upload_id = data["data"]["upload_id"]
         video = DiscourseVideo::Video.find_by_video_id(upload_id)
         if video
           video.asset_id = asset_id unless video.asset_id
