@@ -125,7 +125,14 @@ function initializeDiscourseVideo(api) {
 
     api.addComposerUploadHandler(
       siteSettings.discourse_video_file_extensions.split("|"),
-      (file) => {
+      (files) => {
+        let file;
+        if (Array.isArray(files)) {
+          file = files[0];
+        } else {
+          file = files;
+        }
+
         Ember.run.next(() => {
           showModal("discourse-video-upload-modal").setProperties({
             file,
