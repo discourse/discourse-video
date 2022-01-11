@@ -51,7 +51,7 @@ after_initialize do
   on(:post_process_cooked) do |doc, post|
     video_ids = []
 
-    doc.css("div/@data-video-id").each do |media|
+    doc.xpath(".//div/@data-video-id").each do |media|
       if video = DiscourseVideo::Video.find_by_video_id(media.value)
         video_ids << video.post_custom_field_value
       end
