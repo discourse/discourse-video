@@ -2,9 +2,13 @@
 
 class CopyCustomFieldsToVideoPostsTable < ActiveRecord::Migration[6.1]
   def up
-    PostCustomField.where(name: 'discourse_video').find_each do |pcf|
-      DiscourseVideo::VideoPost.create(post_id: pcf.post_id, video_info: pcf.value)
-    end
+    execute <<~SQL
+      INSERT INTO discourse_video_video_posts (post_id, video_info, created_at, updated_at)
+      SELECT pcf.post_id, pcf.value, pcf.created_at, pcf.updated_at
+      FROM post_custom_fields pcf
+      WHERE pcf.name = 'discourse_video'
+      ON CONFLICT DO NOTHING
+    SQL
   end
 
   def down
