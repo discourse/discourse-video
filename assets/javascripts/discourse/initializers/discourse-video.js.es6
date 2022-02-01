@@ -73,7 +73,6 @@ function initializeDiscourseVideo(api) {
       }
 
       post.discourse_video.forEach((video_string) => {
-
         if (video_string) {
           const status = video_string.replace(`${videoId}:`, "");
           if (status === "ready") {
