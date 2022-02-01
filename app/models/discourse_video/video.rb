@@ -12,20 +12,20 @@ module DiscourseVideo
     validates :state, inclusion: { in: %w(pending ready errored waiting),
                                    message: "%{value} is not a valid state" }
 
-    def post_custom_fields
-      PostCustomField.where(name: DiscourseVideo::POST_CUSTOM_FIELD_NAME).where("value LIKE ?", "#{self.video_id}%")
+    def video_posts
+      DiscourseVideo::VideoPost.where("video_info LIKE ?", "#{self.video_id}%")
     end
 
-    def post_custom_field_value
+    def video_info
       "#{video_id}:#{state}"
     end
 
-    def update_post_custom_fields!
-      post_custom_fields.update_all(value: post_custom_field_value)
+    def update_video_post_fields!
+      video_posts.update_all(video_info: video_info)
     end
 
     def publish_change_to_clients!
-      Post.find(post_custom_fields.pluck(:post_id)).each do |post|
+      Post.find(video_posts.pluck(:post_id)).each do |post|
         post.publish_change_to_clients! :discourse_video_video_changed
       end
     end

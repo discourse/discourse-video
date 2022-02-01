@@ -67,29 +67,27 @@ function initializeDiscourseVideo(api) {
   function renderVideos($elem, post) {
     $("div[data-video-id]", $elem).each((index, container) => {
       const $container = $(container);
-      const video_id = $container.data("video-id").toString();
-      if (!post.discourse_video_videos) {
+      const videoId = $container.data("video-id").toString();
+      if (!post.discourse_video || !videoId) {
         return;
       }
 
-      const video_string = post.discourse_video_videos.find((v) => {
-        return v.indexOf(`${video_id}:`) === 0;
-      });
-
-      if (video_string) {
-        const status = video_string.replace(`${video_id}:`, "");
-        if (status === "ready") {
-          renderVideo($container, video_id);
-        } else if (status === "errored") {
-          renderPlaceholder($container, "errored");
-        } else if (status === "waiting") {
-          renderPlaceholder($container, "waiting");
+      post.discourse_video.forEach((video_string) => {
+        if (video_string) {
+          const status = video_string.replace(`${videoId}:`, "");
+          if (status === "ready") {
+            renderVideo($container, videoId);
+          } else if (status === "errored") {
+            renderPlaceholder($container, "errored");
+          } else if (status === "waiting") {
+            renderPlaceholder($container, "waiting");
+          } else {
+            renderPlaceholder($container, "pending");
+          }
         } else {
-          renderPlaceholder($container, "pending");
+          renderPlaceholder($container, "waiting");
         }
-      } else {
-        renderPlaceholder($container, "waiting");
-      }
+      });
     });
   }
 

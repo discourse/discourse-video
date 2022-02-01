@@ -28,10 +28,14 @@ end
 after_initialize do
   require_relative "app/controllers/discourse_video/display_controller.rb"
 
-  register_post_custom_field_type('discourse_video', :string)
+  reloadable_patch do |plugin|
+    class ::Post
+      has_many :discourse_video, class_name: 'DiscourseVideo::VideoPost'
+    end
+  end
 
-  topic_view_post_custom_fields_allowlister do |user|
-    DiscourseVideo::POST_CUSTOM_FIELD_NAME
+  TopicView.on_preload do |topic_view|
+    topic_view.instance_variable_set(:@posts, topic_view.posts.includes(:discourse_video))
   end
 
   add_to_class(:guardian, :can_upload_video?) do
@@ -40,8 +44,8 @@ after_initialize do
     @user.trust_level >= SiteSetting.discourse_video_min_trust_level
   end
 
-  add_to_serializer(:post, :discourse_video_videos, false) do
-    Array(post_custom_fields[DiscourseVideo::POST_CUSTOM_FIELD_NAME])
+  add_to_serializer(:post, :discourse_video, false) do
+    Array(DiscourseVideo::VideoPost.where(post_id: object.id).pluck(:video_info))
   end
 
   add_to_serializer(:current_user, :can_upload_video) do
@@ -53,12 +57,20 @@ after_initialize do
 
     doc.css("div/@data-video-id").each do |media|
       if video = DiscourseVideo::Video.find_by_video_id(media.value)
-        video_ids << video.post_custom_field_value
+        video_ids << video.video_info
       end
     end
 
-    post.custom_fields[DiscourseVideo::POST_CUSTOM_FIELD_NAME] = video_ids
-    post.save_custom_fields
+    DiscourseVideo::VideoPost.where(post_id: post.id).delete_all
+    if video_ids.size > 0
+      params = video_ids.map do |val|
+        {
+          post_id: post.id,
+          video_info: val
+        }
+      end
+      DiscourseVideo::VideoPost.create!(params)
+    end
 
     post.publish_change_to_clients! :discourse_video_video_changed
   end
