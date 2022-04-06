@@ -12,7 +12,7 @@ function addVideo(buffer, matches, state) {
 }
 
 export function setup(helper) {
-  helper.whiteList(["div.discourse-video-container", "div[data-video-id]"]);
+  helper.allowList(["div.discourse-video-container", "div[data-video-id]"]);
 
   helper.registerPlugin((md) => {
     const rule = {
