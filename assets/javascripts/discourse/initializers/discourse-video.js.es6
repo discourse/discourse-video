@@ -43,7 +43,7 @@ function initializeDiscourseVideo(api) {
         let text = document.createTextNode("Download video");
         downloadLink.className = "download-mux-video";
         downloadLink.appendChild(text);
-        const mp4Url = `https://stream.mux.com/${data.playback_id}/high.mp4`;
+        const mp4Url = `https://stream.mux.com/${data.playback_id}/high.mp4?download=${data.playback_id}.mp4`;
         downloadLink.href = mp4Url;
         videoContainer[0].appendChild(downloadLink);
       });
