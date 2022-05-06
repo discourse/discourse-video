@@ -21,3 +21,6 @@ plugins:
     list_type: compact
   discourse_video_uploads_per_day_per_user:
     default: 10
+  discourse_video_enable_mp4_download:
+    default: false
+    client: true

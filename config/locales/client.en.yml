@@ -4,6 +4,7 @@ en:
       modal_title: "Upload Video"
       modal_subtitle: "Select a video to upload and embed"
       select_file: "Select File"
+      download_video: "Download Video"
       file: "File"
       upload_toolbar_title: Upload Video
       upload_progress:
