@@ -19,7 +19,7 @@ module DiscourseVideo
 
       hijack do
         begin
-          result = MuxApi.create_direct_upload_2
+          result = MuxApi.create_direct_upload
           video = DiscourseVideo::Video.new(
             video_id: result["data"]["id"],
             state: result["data"]["status"],

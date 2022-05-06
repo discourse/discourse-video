@@ -17,19 +17,35 @@ function initializeDiscourseVideo(api) {
         video.controls = "controls";
         videoContainer[0].appendChild(video);
 
-        const url = `https://stream.mux.com/${data.playback_id}.m3u8`;
+        const hlsUrl = `https://stream.mux.com/${data.playback_id}.m3u8`;
 
-        // // Let native HLS support handle it if possible
+        // Let native HLS support handle it if possible
         if (video.canPlayType("application/vnd.apple.mpegurl")) {
-          video.src = url;
+          let hlsSource = document.createElement("source");
+          hlsSource.setAttribute("src", hlsUrl);
+          hlsSource.setAttribute("type", "application/x-mpegURL");
+          video.appendChild(hlsSource);
           /* eslint-disable no-undef */
         } else if (Hls.isSupported()) {
-          // HLS.js-specific setup code
           let hls = new Hls();
           /* eslint-enable no-undef */
-          hls.loadSource(url);
+          hls.loadSource(hlsUrl);
           hls.attachMedia(video);
         }
+      });
+    });
+  }
+
+  function renderDownloadVideo(videoContainer, videoId) {
+    loadScript("/plugins/discourse-video/javascripts/hls.min.js").then(() => {
+      ajax(`/discourse_video/playback_id/${videoId}`).then((data) => {
+        let downloadLink = document.createElement("a");
+        let text = document.createTextNode("Download video");
+        downloadLink.className = "download-mux-video";
+        downloadLink.appendChild(text);
+        const mp4Url = `https://stream.mux.com/${data.playback_id}/high.mp4`;
+        downloadLink.href = mp4Url
+        videoContainer[0].appendChild(downloadLink);
       });
     });
   }
@@ -86,6 +102,23 @@ function initializeDiscourseVideo(api) {
           }
         } else {
           renderPlaceholder($container, "waiting");
+        }
+      });
+    });
+
+    $("div[data-download-video-id]", $elem).each((index, container) => {
+      const $container = $(container);
+      const videoId = $container.data("download-video-id").toString();
+      if (!post.discourse_video || !videoId) {
+        return;
+      }
+
+      post.discourse_video.forEach((video_string) => {
+        if (video_string) {
+          const status = video_string.replace(`${videoId}:`, "");
+          if (status === "ready") {
+            renderDownloadVideo($container, videoId);
+          }
         }
       });
     });

@@ -7,6 +7,8 @@ en:
     discourse_video_min_trust_level: Minimum required trust level for uploading videos
     discourse_video_file_extensions: A list of file extensions which can be uploaded
     discourse_video_uploads_per_day_per_user: Maximum number of videos that a user can upload per day
+    discourse_video_enable_mp4_storage: "Turns on mp4 storage of videos going forward"
+    discourse_video_enable_mp4_download: "Allows users to download videos"
   discourse_video:
     post:
       errors:

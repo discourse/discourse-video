@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require_relative '../fabricators/video_fabricator.rb'
 
 def mux_signature(data)
   timestamp = 1234

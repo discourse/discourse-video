@@ -2,14 +2,14 @@
 
 module DiscourseVideo
   class DisplayController < ::ApplicationController
-    skip_before_action :check_xhr
     requires_plugin DiscourseVideo
 
     def get_playback_id
       video_id = params.require(:video_id)
-      playback_id = DiscourseVideo::Video.where(video_id: video_id).pluck(:playback_id).first
+      video_info = DiscourseVideo::Video.where(video_id: video_id).as_json(only: [:playback_id, :mp4_filename]).first
 
-      render json: { playback_id: playback_id }
+      render json: video_info
     end
+
   end
 end
