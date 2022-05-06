@@ -15,7 +15,12 @@ function initializeDiscourseVideo(api) {
         let video = document.createElement("video");
         video.className = "mux-video";
         video.controls = "controls";
-        videoContainer[0].appendChild(video);
+        let placeholder = videoContainer.querySelector(".icon-container");
+        if (placeholder) {
+          videoContainer.replaceChild(video, placeholder);
+        } else {
+          videoContainer.appendChild(video);
+        }
 
         const hlsUrl = `https://stream.mux.com/${data.playback_id}.m3u8`;
 
@@ -36,16 +41,18 @@ function initializeDiscourseVideo(api) {
     });
   }
 
-  function renderDownloadVideo(videoContainer, videoId) {
+  function renderVideoDownloadLink(videoContainer, videoId) {
     loadScript("/plugins/discourse-video/javascripts/hls.min.js").then(() => {
       ajax(`/discourse_video/playback_id/${videoId}`).then((data) => {
         let downloadLink = document.createElement("a");
-        let text = document.createTextNode("Download video");
+        let text = document.createTextNode(
+          I18n.t("discourse_video.download_video")
+        );
         downloadLink.className = "download-mux-video";
         downloadLink.appendChild(text);
         const mp4Url = `https://stream.mux.com/${data.playback_id}/high.mp4?download=${data.playback_id}.mp4`;
         downloadLink.href = mp4Url;
-        videoContainer[0].appendChild(downloadLink);
+        videoContainer.appendChild(downloadLink);
       });
     });
   }
@@ -69,21 +76,35 @@ function initializeDiscourseVideo(api) {
     },
   };
 
-  function renderPlaceholder($container, type) {
-    $container.html(
-      `<div class='icon-container'>
-        <div class='discourse-video-message'>
-          <div class='video-state-icon'>${placeholders[type].iconHtml}</div>
-          <div class='video-state'>${placeholders[type].string}</div>
-        </div>
-      </div>`
-    );
+  function renderPlaceholder(container, type) {
+    let iconContainerDiv = document.createElement("div");
+    iconContainerDiv.className = "icon-container";
+
+    let discourseVideoMessageDiv = document.createElement("div");
+    discourseVideoMessageDiv.className = "discourse-video-message";
+    iconContainerDiv.appendChild(discourseVideoMessageDiv);
+
+    let videoStateIcon = document.createElement("div");
+    videoStateIcon.className = "video-state-icon";
+    videoStateIcon.innerHTML = `${placeholders[type].iconHtml}`;
+    discourseVideoMessageDiv.appendChild(videoStateIcon);
+
+    let videoState = document.createElement("div");
+    videoState.className = "video-state";
+    videoState.innerHTML = `${placeholders[type].string}`;
+    discourseVideoMessageDiv.appendChild(videoState);
+
+    let placeholder = document.querySelector(".icon-container");
+    if (placeholder) {
+      container.replaceChild(iconContainerDiv, placeholder);
+    } else {
+      container.appendChild(iconContainerDiv);
+    }
   }
 
-  function renderVideos($elem, post) {
-    $("div[data-video-id]", $elem).each((index, container) => {
-      const $container = $(container);
-      const videoId = $container.data("video-id").toString();
+  function renderVideos(elem, post) {
+    elem.querySelectorAll("div[data-video-id]").forEach(function (container) {
+      const videoId = container.getAttribute("data-video-id").toString();
       if (!post.discourse_video || !videoId) {
         return;
       }
@@ -92,48 +113,51 @@ function initializeDiscourseVideo(api) {
         if (video_string) {
           const status = video_string.replace(`${videoId}:`, "");
           if (status === "ready") {
-            renderVideo($container, videoId);
+            renderVideo(container, videoId);
           } else if (status === "errored") {
-            renderPlaceholder($container, "errored");
+            renderPlaceholder(container, "errored");
           } else if (status === "waiting") {
-            renderPlaceholder($container, "waiting");
+            renderPlaceholder(container, "waiting");
           } else {
-            renderPlaceholder($container, "pending");
+            renderPlaceholder(container, "pending");
           }
         } else {
-          renderPlaceholder($container, "waiting");
+          renderPlaceholder(container, "waiting");
         }
       });
     });
 
-    $("div[data-download-video-id]", $elem).each((index, container) => {
-      const $container = $(container);
-      const videoId = $container.data("download-video-id").toString();
-      if (!post.discourse_video || !videoId) {
-        return;
-      }
+    elem
+      .querySelectorAll("div[data-download-video-id]")
+      .forEach(function (container) {
+        const videoId = container
+          .getAttribute("data-download-video-id")
+          .toString();
+        if (!post.discourse_video || !videoId) {
+          return;
+        }
 
-      post.discourse_video.forEach((video_string) => {
-        if (video_string) {
-          const status = video_string.replace(`${videoId}:`, "");
-          if (status === "ready") {
-            renderDownloadVideo($container, videoId);
+        post.discourse_video.forEach((video_string) => {
+          if (video_string) {
+            const status = video_string.replace(`${videoId}:`, "");
+            if (status === "ready") {
+              renderVideoDownloadLink(container, videoId);
+            }
           }
-        }
+        });
       });
-    });
   }
 
-  api.decorateCooked(($elem, helper) => {
+  api.decorateCookedElement((elem, helper) => {
     if (helper) {
       const post = helper.getModel();
-      renderVideos($elem, post);
+      renderVideos(elem, post);
     } else {
-      $("div[data-video-id]", $elem).html(
-        `<p><div class="onebox-placeholder-container">
-          <span class="placeholder-icon video"></span>
-        </div></p>`
-      );
+      elem.querySelectorAll("div[data-video-id]").forEach(function (container) {
+        container.innerHTML = `<p><div class="onebox-placeholder-container">
+            <span class="placeholder-icon video"></span>
+          </div></p>`;
+      });
     }
   });
 
@@ -145,11 +169,12 @@ function initializeDiscourseVideo(api) {
         const post = stream.findLoadedPost(message.id);
 
         stream.triggerChangedPost(message.id).then(() => {
-          $(
-            `article[data-post-id=${message.id}] .discourse-video-message`
-          ).remove();
-          const $post = $(`article[data-post-id=${message.id}]`);
-          renderVideos($post, post);
+          const elements = document.querySelectorAll("article[data-post-id]");
+          elements.forEach(function (elem) {
+            if (elem.getAttribute("data-post-id") === message.id.toString()) {
+              renderVideos(elem, post);
+            }
+          });
         });
       }
     );

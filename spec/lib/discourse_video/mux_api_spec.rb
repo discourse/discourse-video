@@ -13,7 +13,7 @@ describe DiscourseVideo::MuxApi do
   describe "creating video with mp4 support" do
 
     before do
-      SiteSetting.discourse_video_enable_mp4_storage = true
+      SiteSetting.discourse_video_enable_mp4_download = true
     end
 
     body = {
@@ -44,7 +44,7 @@ describe DiscourseVideo::MuxApi do
 
   describe "creating video without mp4 support" do
     before do
-      SiteSetting.discourse_video_enable_mp4_storage = false
+      SiteSetting.discourse_video_enable_mp4_download = false
     end
 
     body = {
