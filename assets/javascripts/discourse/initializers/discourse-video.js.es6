@@ -44,7 +44,7 @@ function initializeDiscourseVideo(api) {
         downloadLink.className = "download-mux-video";
         downloadLink.appendChild(text);
         const mp4Url = `https://stream.mux.com/${data.playback_id}/high.mp4`;
-        downloadLink.href = mp4Url
+        downloadLink.href = mp4Url;
         videoContainer[0].appendChild(downloadLink);
       });
     });

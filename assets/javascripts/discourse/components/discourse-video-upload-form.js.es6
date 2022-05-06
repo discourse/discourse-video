@@ -90,9 +90,9 @@ export default Ember.Component.extend({
   uploadComplete() {
     const videoInfo = this.get("videoInfo");
     this.setProgress("complete", { info: `[video=${videoInfo["video_id"]}]` });
-    let videoTag = `[video=${videoInfo["video_id"]}]`
+    let videoTag = `[video=${videoInfo["video_id"]}]`;
     if (this.siteSettings.discourse_video_enable_mp4_download === true) {
-      videoTag += ` [download-video=${videoInfo["video_id"]}]`
+      videoTag += ` [download-video=${videoInfo["video_id"]}]`;
     }
     this.appEvents.trigger(
       "composer:insert-text",
