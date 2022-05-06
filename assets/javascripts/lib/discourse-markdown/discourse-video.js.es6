@@ -36,7 +36,10 @@ export function setup(helper) {
     md.core.textPostProcess.ruler.push("discourse-video", rule);
   });
 
-  helper.allowList(["div.discourse-download-video-container", "div[data-download-video-id]"]);
+  helper.allowList([
+    "div.discourse-download-video-container",
+    "div[data-download-video-id]",
+  ]);
 
   helper.registerPlugin((md) => {
     const rule = {

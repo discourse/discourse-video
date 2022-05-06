@@ -94,10 +94,7 @@ export default Ember.Component.extend({
     if (this.siteSettings.discourse_video_enable_mp4_download === true) {
       videoTag += ` [download-video=${videoInfo["video_id"]}]`;
     }
-    this.appEvents.trigger(
-      "composer:insert-text",
-      videoTag
-    );
+    this.appEvents.trigger("composer:insert-text", videoTag);
     this.sendAction("closeModal");
   },
 
