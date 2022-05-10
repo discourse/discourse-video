@@ -73,6 +73,28 @@ module DiscourseVideo
         end
       end
 
+      if data["type"] == "video.asset.static_renditions.ready"
+        upload_id = data["data"]["upload_id"]
+        video = DiscourseVideo::Video.find_by_video_id(upload_id)
+        filenames = []
+
+        if video
+          files = data["data"]["static_renditions"]["files"]
+          files.each do |f|
+            filenames << f["name"]
+          end
+
+          if filenames.include?("high.mp4")
+            video.mp4_filename = "high.mp4"
+          else
+            video.mp4_filename = "low.mp4"
+          end
+
+          video.save!
+        end
+
+      end
+
       render json: success_json
 
     end
