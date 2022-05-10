@@ -50,9 +50,11 @@ function initializeDiscourseVideo(api) {
         );
         downloadLink.className = "download-mux-video";
         downloadLink.appendChild(text);
-        const mp4Url = `https://stream.mux.com/${data.playback_id}/high.mp4?download=${data.playback_id}.mp4`;
+        const mp4Url = `https://stream.mux.com/${data.playback_id}/${data.mp4_filename}?download=${data.playback_id}.mp4`;
         downloadLink.href = mp4Url;
-        videoContainer.appendChild(downloadLink);
+        if (data.mp4_filename) {
+          videoContainer.appendChild(downloadLink);
+        }
       });
     });
   }
