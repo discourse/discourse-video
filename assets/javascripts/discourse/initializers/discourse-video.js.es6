@@ -210,6 +210,16 @@ function initializeDiscourseVideo(api) {
         },
       });
     });
+
+    api.registerChatComposerButton?.({
+      id: "discourse-video-upload",
+      icon: "video",
+      label: "discourse_video.upload_toolbar_title",
+      position: "dropdown",
+      action() {
+        showModal("discourse-video-upload-modal");
+      },
+    });
   }
 }
 
