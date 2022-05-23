@@ -4,14 +4,40 @@ import { withPluginApi } from "discourse/lib/plugin-api";
 import showModal from "discourse/lib/show-modal";
 import { renderIcon } from "discourse-common/lib/icon-library";
 import I18n from "I18n";
+import { later } from "@ember/runloop";
+
+let _retries = {};
 
 function initializeDiscourseVideo(api) {
   const siteSettings = api.container.lookup("site-settings:main");
   const user = api.getCurrentUser();
 
   function renderVideo(videoContainer, videoId) {
+    if (!videoContainer || !videoId) {
+      return;
+    }
+
     loadScript("/plugins/discourse-video/javascripts/hls.min.js").then(() => {
       ajax(`/discourse_video/playback_id/${videoId}`).then((data) => {
+        _retries[videoId] = _retries[videoId] || 1;
+
+        if (!data.playback_id) {
+          if (_retries[videoId] <= 5) {
+            renderPlaceholder(videoContainer, "pending");
+
+            later(() => {
+              _retries[videoId] = _retries[videoId] ? _retries[videoId] + 1 : 1;
+              renderVideo(videoContainer, videoId);
+            }, 1000);
+          } else {
+            delete _retries[videoId];
+            renderPlaceholder(videoContainer, "errored");
+          }
+
+          return;
+        }
+
+        delete _retries[videoId];
         let video = document.createElement("video");
         video.className = "mux-video";
         video.controls = "controls";
@@ -96,7 +122,7 @@ function initializeDiscourseVideo(api) {
     videoState.innerHTML = `${placeholders[type].string}`;
     discourseVideoMessageDiv.appendChild(videoState);
 
-    let placeholder = document.querySelector(".icon-container");
+    let placeholder = container.querySelector(".icon-container");
     if (placeholder) {
       container.replaceChild(iconContainerDiv, placeholder);
     } else {
@@ -163,6 +189,24 @@ function initializeDiscourseVideo(api) {
     }
   });
 
+  // for now chat is using a naive support and doesn’t check for various states
+  // if the video can't be fetched it will loop every 10s to attempt to process it again
+  // until 5 retries have been made
+  api.decorateChatMessage((elem, message) => {
+    elem
+      .querySelectorAll("div[data-video-id]:not([data-processed])")
+      .forEach(function (container) {
+        const videoId = container.getAttribute("data-video-id").toString();
+        if (!videoId) {
+          return;
+        }
+
+        container.dataset.processed = true;
+
+        renderVideo(container, videoId);
+      });
+  });
+
   if (user && user.can_upload_video) {
     api.registerCustomPostMessageCallback(
       "discourse_video_video_changed",
@@ -217,7 +261,10 @@ function initializeDiscourseVideo(api) {
       label: "discourse_video.upload_toolbar_title",
       position: "dropdown",
       action() {
-        showModal("discourse-video-upload-modal");
+        const controller = showModal("discourse-video-upload-modal");
+        controller.set("afterUploadComplete", (videoTag) => {
+          this.addText(this.getSelected(), videoTag);
+        });
       },
     });
   }

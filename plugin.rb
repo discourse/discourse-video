@@ -74,4 +74,8 @@ after_initialize do
 
     post.publish_change_to_clients! :discourse_video_video_changed
   end
+
+  if respond_to?(:discourse_chat)
+    discourse_chat&.enable_markdown_feature('discourse-video')
+  end
 end
