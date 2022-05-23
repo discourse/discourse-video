@@ -192,7 +192,7 @@ function initializeDiscourseVideo(api) {
   // for now chat is using a naive support and doesn’t check for various states
   // if the video can't be fetched it will loop every 10s to attempt to process it again
   // until 5 retries have been made
-  api.decorateChatMessage((elem) => {
+  api.decorateChatMessage?.((elem) => {
     elem
       .querySelectorAll("div[data-video-id]:not([data-processed])")
       .forEach(function (container) {
