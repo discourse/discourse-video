@@ -28,7 +28,7 @@ function initializeDiscourseVideo(api) {
             later(() => {
               _retries[videoId] = _retries[videoId] ? _retries[videoId] + 1 : 1;
               renderVideo(videoContainer, videoId);
-            }, 1000);
+            }, 10000);
           } else {
             delete _retries[videoId];
             renderPlaceholder(videoContainer, "errored");
