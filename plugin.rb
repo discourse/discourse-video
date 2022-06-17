@@ -4,7 +4,7 @@
 # about: Improved video upload and playback experience.
 # version: 0.1
 # authors: Blake Erickson
-# url: https://github.com/oblakeerickson/discourse-video
+# url: https://github.com/discourse/discourse-video
 
 enabled_site_setting :discourse_video_enabled
 
