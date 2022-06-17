@@ -4,6 +4,7 @@ import { withPluginApi } from "discourse/lib/plugin-api";
 import showModal from "discourse/lib/show-modal";
 import { renderIcon } from "discourse-common/lib/icon-library";
 import I18n from "I18n";
+import { next } from "@ember/runloop";
 
 function initializeDiscourseVideo(api) {
   const siteSettings = api.container.lookup("site-settings:main");
@@ -191,7 +192,7 @@ function initializeDiscourseVideo(api) {
           file = files;
         }
 
-        Ember.run.next(() => {
+        next(() => {
           showModal("discourse-video-upload-modal").setProperties({
             file,
           });
