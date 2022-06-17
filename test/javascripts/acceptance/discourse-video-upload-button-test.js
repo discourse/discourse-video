@@ -1,5 +1,8 @@
+import { test } from "qunit";
+import { click, visit } from "@ember/test-helpers";
 import {
   acceptance,
+  exists,
   updateCurrentUser,
 } from "discourse/tests/helpers/qunit-helpers";
 import { clearToolbarCallbacks } from "discourse/components/d-editor";
@@ -15,7 +18,7 @@ acceptance(
     });
     needs.hooks.beforeEach(() => clearToolbarCallbacks());
 
-    test("it shows upload button when can_upload_video is true", async (assert) => {
+    test("it shows upload button when can_upload_video is true", async function (assert) {
       updateCurrentUser({ can_upload_video: true });
 
       await visit("/");
@@ -27,7 +30,7 @@ acceptance(
       );
     });
 
-    test("it does not show upload button when can_upload_video is false", async (assert) => {
+    test("it does not show upload button when can_upload_video is false", async function (assert) {
       updateCurrentUser({ can_upload_video: false });
 
       await visit("/");
