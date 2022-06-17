@@ -1,5 +1,8 @@
+import { test } from "qunit";
+import { click, visit } from "@ember/test-helpers";
 import {
   acceptance,
+  exists,
   updateCurrentUser,
 } from "discourse/tests/helpers/qunit-helpers";
 import { clearToolbarCallbacks } from "discourse/components/d-editor";
@@ -13,7 +16,7 @@ acceptance("Discourse video enabled", function (needs) {
   });
   needs.hooks.beforeEach(() => clearToolbarCallbacks());
 
-  test("Shows upload video button in composer", async (assert) => {
+  test("Shows upload video button in composer", async function (assert) {
     updateCurrentUser({ can_upload_video: true });
     await visit("/");
     await click("#create-topic");
