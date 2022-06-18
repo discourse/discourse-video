@@ -151,18 +151,23 @@ function initializeDiscourseVideo(api) {
       });
   }
 
-  api.decorateCookedElement((elem, helper) => {
-    if (helper) {
-      const post = helper.getModel();
-      renderVideos(elem, post);
-    } else {
-      elem.querySelectorAll("div[data-video-id]").forEach(function (container) {
-        container.innerHTML = `<p><div class="onebox-placeholder-container">
+  api.decorateCookedElement(
+    (elem, helper) => {
+      if (helper) {
+        const post = helper.getModel();
+        renderVideos(elem, post);
+      } else {
+        elem
+          .querySelectorAll("div[data-video-id]")
+          .forEach(function (container) {
+            container.innerHTML = `<p><div class="onebox-placeholder-container">
             <span class="placeholder-icon video"></span>
           </div></p>`;
-      });
-    }
-  });
+          });
+      }
+    },
+    { id: "discourse-video" }
+  );
 
   if (user && user.can_upload_video) {
     api.registerCustomPostMessageCallback(
