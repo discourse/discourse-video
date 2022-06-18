@@ -62,10 +62,6 @@ export default Component.extend({
       chunkSize: 5120, // Uploads the file in ~5mb chunks
     });
 
-    // subscribe to events
-    upload.on("error", (err) => {
-    });
-
     upload.on("progress", (progress) => {
       this.setProgress("uploading", {
         progress: progress.detail.toFixed(1),
