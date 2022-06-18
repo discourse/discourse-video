@@ -47,9 +47,6 @@ export default Component.extend({
         this.setupUpChunk(videoInfo);
       })
       .catch((reason) => {
-        /* eslint-disable no-console */
-        console.error("Could not create video.", reason);
-        /* eslint-enable no-console */
         this.setProgress("error");
         popupAjaxError(reason);
       });
@@ -67,24 +64,15 @@ export default Component.extend({
 
     // subscribe to events
     upload.on("error", (err) => {
-      /* eslint-disable no-console */
-      console.error("💥 🙀", err.detail);
-      /* eslint-enable no-console */
     });
 
     upload.on("progress", (progress) => {
-      /* eslint-disable no-console */
-      console.log(`So far we've uploaded ${progress.detail}% of this file.`);
-      /* eslint-enable no-console */
       this.setProgress("uploading", {
         progress: progress.detail.toFixed(1),
       });
     });
 
     upload.on("success", () => {
-      /* eslint-disable no-console */
-      console.log("Wrap it up, we're done here. 👋");
-      /* eslint-enable no-console */
       this.uploadComplete();
     });
   },
@@ -122,9 +110,6 @@ export default Component.extend({
 
   actions: {
     fileChanged(event) {
-      /* eslint-disable no-console */
-      console.log("File Changed", event.target.files[0]);
-      /* eslint-enable no-console */
       const file = event.target.files[0];
       this.set("file", file);
     },
