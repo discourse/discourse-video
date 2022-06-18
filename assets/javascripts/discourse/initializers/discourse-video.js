@@ -1,3 +1,4 @@
+/* global Hls */
 import loadScript from "discourse/lib/load-script";
 import { ajax } from "discourse/lib/ajax";
 import { withPluginApi } from "discourse/lib/plugin-api";
@@ -31,10 +32,8 @@ function initializeDiscourseVideo(api) {
           hlsSource.setAttribute("src", hlsUrl);
           hlsSource.setAttribute("type", "application/x-mpegURL");
           video.appendChild(hlsSource);
-          /* eslint-disable no-undef */
         } else if (Hls.isSupported()) {
           let hls = new Hls();
-          /* eslint-enable no-undef */
           hls.loadSource(hlsUrl);
           hls.attachMedia(video);
         }
@@ -53,6 +52,7 @@ function initializeDiscourseVideo(api) {
         downloadLink.appendChild(text);
         const mp4Url = `https://stream.mux.com/${data.playback_id}/${data.mp4_filename}?download=${data.playback_id}.mp4`;
         downloadLink.href = mp4Url;
+
         if (data.mp4_filename) {
           videoContainer.appendChild(downloadLink);
         }
