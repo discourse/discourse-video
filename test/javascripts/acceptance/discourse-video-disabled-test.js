@@ -1,4 +1,6 @@
-import { acceptance } from "discourse/tests/helpers/qunit-helpers";
+import { test } from "qunit";
+import { click, visit } from "@ember/test-helpers";
+import { acceptance, exists } from "discourse/tests/helpers/qunit-helpers";
 import { clearToolbarCallbacks } from "discourse/components/d-editor";
 
 acceptance("Discourse video disabled", function (needs) {
@@ -8,7 +10,7 @@ acceptance("Discourse video disabled", function (needs) {
   });
   needs.hooks.beforeEach(() => clearToolbarCallbacks());
 
-  test("Doesn't shows upload video icon in composer", async (assert) => {
+  test("Doesn't shows upload video icon in composer", async function (assert) {
     await visit("/");
     await click("#create-topic");
 
