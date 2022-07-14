@@ -20,25 +20,12 @@ function initializeDiscourseVideo(api) {
 
     loadScript("/plugins/discourse-video/javascripts/hls.min.js").then(() => {
       ajax(`/discourse_video/playback_id/${videoId}`).then((data) => {
-        _retries[videoId] = _retries[videoId] || 1;
 
         if (!data.playback_id) {
-          if (_retries[videoId] <= 5) {
-            renderPlaceholder(videoContainer, "pending");
-
-            next(() => {
-              _retries[videoId] = _retries[videoId] ? _retries[videoId] + 1 : 1;
-              renderVideo(videoContainer, videoId);
-            }, 10000);
-          } else {
-            delete _retries[videoId];
-            renderPlaceholder(videoContainer, "errored");
-          }
-
+          renderPlaceholder(videoContainer, "pending");
           return;
         }
 
-        delete _retries[videoId];
         let video = document.createElement("video");
         video.className = "mux-video";
         video.controls = "controls";
@@ -194,19 +181,14 @@ function initializeDiscourseVideo(api) {
     { id: "discourse-video" }
   );
 
-  // for now chat is using a naive support and doesn’t check for various states
-  // if the video can't be fetched it will loop every 10s to attempt to process it again
-  // until 5 retries have been made
   api.decorateChatMessage?.((elem) => {
     elem
-      .querySelectorAll("div[data-video-id]:not([data-processed])")
+      .querySelectorAll("div[data-video-id]")
       .forEach(function (container) {
         const videoId = container.getAttribute("data-video-id").toString();
         if (!videoId) {
           return;
         }
-
-        container.dataset.processed = true;
 
         renderVideo(container, videoId);
       });
