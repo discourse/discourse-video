@@ -7,8 +7,6 @@ import { renderIcon } from "discourse-common/lib/icon-library";
 import I18n from "I18n";
 import { next } from "@ember/runloop";
 
-let _retries = {};
-
 function initializeDiscourseVideo(api) {
   const siteSettings = api.container.lookup("site-settings:main");
   const user = api.getCurrentUser();
@@ -20,7 +18,6 @@ function initializeDiscourseVideo(api) {
 
     loadScript("/plugins/discourse-video/javascripts/hls.min.js").then(() => {
       ajax(`/discourse_video/playback_id/${videoId}`).then((data) => {
-
         if (!data.playback_id) {
           renderPlaceholder(videoContainer, "pending");
           return;
@@ -182,16 +179,14 @@ function initializeDiscourseVideo(api) {
   );
 
   api.decorateChatMessage?.((elem) => {
-    elem
-      .querySelectorAll("div[data-video-id]")
-      .forEach(function (container) {
-        const videoId = container.getAttribute("data-video-id").toString();
-        if (!videoId) {
-          return;
-        }
+    elem.querySelectorAll("div[data-video-id]").forEach(function (container) {
+      const videoId = container.getAttribute("data-video-id").toString();
+      if (!videoId) {
+        return;
+      }
 
-        renderVideo(container, videoId);
-      });
+      renderVideo(container, videoId);
+    });
   });
 
   if (user && user.can_upload_video) {
