@@ -72,9 +72,10 @@ module DiscourseVideo
           video.update_video_post_fields!
           video.publish_change_to_clients!
 
-          # TODO: Check for discourse-chat plugin
-          video.update_video_chat_message_fields!
-          video.publish_chat_message_change_to_clients!
+          if respond_to?(:discourse_chat)
+            video.update_video_chat_message_fields!
+            video.publish_chat_message_change_to_clients!
+          end
         end
       end
 
