@@ -30,5 +30,18 @@ module DiscourseVideo
       end
     end
 
+    def video_chat_messages
+      DiscourseVideo::VideoChatMessage.where("video_info LIKE ?", "#{self.video_id}%")
+    end
+
+    def update_video_chat_message_fields!
+      video_chat_messages.update_all(video_info: video_info)
+    end
+
+    def publish_chat_message_change_to_clients!
+      ChatMessage.find(video_chat_messages.pluck(:message_id)).each do |chat_message|
+        ChatPublisher.publish_refresh!(chat_message.chat_channel, chat_message)
+      end
+    end
   end
 end

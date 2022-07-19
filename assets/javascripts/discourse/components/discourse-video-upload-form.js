@@ -9,6 +9,13 @@ const UPCHUNK = window.UpChunk;
 
 export default Component.extend({
   file: null,
+  afterUploadComplete: null,
+
+  willDestroyElement() {
+    this._super(...arguments);
+
+    this.set("file", null);
+  },
 
   @discourseComputed("file")
   fileName(file) {
@@ -80,7 +87,12 @@ export default Component.extend({
     if (this.siteSettings.discourse_video_enable_mp4_download === true) {
       videoTag += ` [download-video=${videoInfo["video_id"]}]`;
     }
-    this.appEvents.trigger("composer:insert-text", videoTag);
+
+    if (this.afterUploadComplete) {
+      this.afterUploadComplete(videoTag);
+    } else {
+      this.appEvents.trigger("composer:insert-text", videoTag);
+    }
     this.sendAction("closeModal");
   },
 

@@ -12,8 +12,17 @@ function initializeDiscourseVideo(api) {
   const user = api.getCurrentUser();
 
   function renderVideo(videoContainer, videoId) {
+    if (!videoContainer || !videoId) {
+      return;
+    }
+
     loadScript("/plugins/discourse-video/javascripts/hls.min.js").then(() => {
       ajax(`/discourse_video/playback_id/${videoId}`).then((data) => {
+        if (!data.playback_id) {
+          renderPlaceholder(videoContainer, "pending");
+          return;
+        }
+
         let video = document.createElement("video");
         video.className = "mux-video";
         video.controls = "controls";
@@ -97,7 +106,7 @@ function initializeDiscourseVideo(api) {
     videoState.innerHTML = `${placeholders[type].string}`;
     discourseVideoMessageDiv.appendChild(videoState);
 
-    let placeholder = document.querySelector(".icon-container");
+    let placeholder = container.querySelector(".icon-container");
     if (placeholder) {
       container.replaceChild(iconContainerDiv, placeholder);
     } else {
@@ -169,6 +178,17 @@ function initializeDiscourseVideo(api) {
     { id: "discourse-video" }
   );
 
+  api.decorateChatMessage?.((elem) => {
+    elem.querySelectorAll("div[data-video-id]").forEach(function (container) {
+      const videoId = container.getAttribute("data-video-id").toString();
+      if (!videoId) {
+        return;
+      }
+
+      renderVideo(container, videoId);
+    });
+  });
+
   if (user && user.can_upload_video) {
     api.registerCustomPostMessageCallback(
       "discourse_video_video_changed",
@@ -223,7 +243,10 @@ function initializeDiscourseVideo(api) {
       label: "discourse_video.upload_toolbar_title",
       position: "dropdown",
       action() {
-        showModal("discourse-video-upload-modal");
+        const controller = showModal("discourse-video-upload-modal");
+        controller.set("afterUploadComplete", (videoTag) => {
+          this.addText(this.getSelected(), videoTag);
+        });
       },
     });
   }

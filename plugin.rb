@@ -75,4 +75,29 @@ after_initialize do
 
     post.publish_change_to_clients! :discourse_video_video_changed
   end
+
+  on(:chat_message_processed) do |doc, message|
+    video_ids = []
+
+    doc.css("div/@data-video-id").each do |media|
+      if video = DiscourseVideo::Video.find_by_video_id(media.value)
+        video_ids << video.video_info
+      end
+    end
+
+    DiscourseVideo::VideoChatMessage.where(message_id: message.id).delete_all
+    if video_ids.size > 0
+      params = video_ids.map do |val|
+        {
+          message_id: message.id,
+          video_info: val
+        }
+      end
+      DiscourseVideo::VideoChatMessage.create!(params)
+    end
+  end
+
+  if respond_to?(:discourse_chat)
+    discourse_chat&.enable_markdown_feature('discourse-video')
+  end
 end

@@ -68,8 +68,14 @@ module DiscourseVideo
           video.playback_id = data["data"]["playback_ids"][0]["id"]
           video.state = DiscourseVideo::Video::READY
           video.save!
+
           video.update_video_post_fields!
           video.publish_change_to_clients!
+
+          if respond_to?(:discourse_chat)
+            video.update_video_chat_message_fields!
+            video.publish_chat_message_change_to_clients!
+          end
         end
       end
 
