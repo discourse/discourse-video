@@ -7,6 +7,8 @@ import { renderIcon } from "discourse-common/lib/icon-library";
 import I18n from "I18n";
 import { next } from "@ember/runloop";
 
+const HLS_SCRIPT_URL = "/plugins/discourse-video/javascripts/hls.js";
+
 function initializeDiscourseVideo(api) {
   const siteSettings = api.container.lookup("site-settings:main");
   const user = api.getCurrentUser();
@@ -16,7 +18,7 @@ function initializeDiscourseVideo(api) {
       return;
     }
 
-    loadScript("/plugins/discourse-video/javascripts/hls.min.js").then(() => {
+    loadScript(HLS_SCRIPT_URL).then(() => {
       ajax(`/discourse_video/playback_id/${videoId}`).then((data) => {
         if (!data.playback_id) {
           renderPlaceholder(videoContainer, "pending");
@@ -51,7 +53,7 @@ function initializeDiscourseVideo(api) {
   }
 
   function renderVideoDownloadLink(videoContainer, videoId) {
-    loadScript("/plugins/discourse-video/javascripts/hls.min.js").then(() => {
+    loadScript(HLS_SCRIPT_URL).then(() => {
       ajax(`/discourse_video/playback_id/${videoId}`).then((data) => {
         let downloadLink = document.createElement("a");
         let text = document.createTextNode(
