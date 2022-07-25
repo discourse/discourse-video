@@ -15,10 +15,6 @@ register_asset 'stylesheets/desktop/discourse-video.scss', :desktop
 register_asset 'stylesheets/mobile/discourse-video.scss', :mobile
 register_svg_icon "fa-video"
 
-extend_content_security_policy(
-  worker_src: ['blob:']
-)
-
 %w{
   ../lib/discourse_video/engine.rb
   ../lib/discourse_video/mux_api.rb
