@@ -7,7 +7,7 @@ import { renderIcon } from "discourse-common/lib/icon-library";
 import I18n from "I18n";
 import { next } from "@ember/runloop";
 
-const HLS_SCRIPT_URL = "/plugins/discourse-video/javascripts/hls.js";
+const HLS_SCRIPT_URL = "/plugins/discourse-video/javascripts/hls.min.js";
 
 function initializeDiscourseVideo(api) {
   const siteSettings = api.container.lookup("site-settings:main");
@@ -44,7 +44,9 @@ function initializeDiscourseVideo(api) {
           hlsSource.setAttribute("type", "application/x-mpegURL");
           video.appendChild(hlsSource);
         } else if (Hls.isSupported()) {
-          let hls = new Hls();
+          // enableWorker: false because https://github.com/borisirota/webworkify-webpack/issues/45
+          // and because it requires us to add 'worker-src: blob:' to our CSP
+          let hls = new Hls({ enableWorker: false });
           hls.loadSource(hlsUrl);
           hls.attachMedia(video);
         }
