@@ -3,11 +3,12 @@ import discourseComputed from "discourse-common/utils/decorators";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import I18n from "I18n";
-import bootbox from "bootbox";
+import { inject as service } from "@ember/service";
 
 const UPCHUNK = window.UpChunk;
 
 export default Component.extend({
+  dialog: service(),
   file: null,
   afterUploadComplete: null,
 
@@ -126,7 +127,7 @@ export default Component.extend({
       if (this.isAuthorizedVideo(this.file.name) && this.file.size > 0) {
         this.createVideoObject();
       } else {
-        bootbox.alert(
+        this.dialog.alert(
           I18n.t("discourse_video.post.errors.upload_not_authorized", {
             authorized_extensions: this.videoExtensionsToArray().join(", "),
           })
