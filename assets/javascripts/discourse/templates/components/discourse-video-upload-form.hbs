@@ -1,8 +1,8 @@
-{{#d-modal-body
-  title="discourse_video.modal_title"
-  subtitle="discourse_video.modal_subtitle"
-  class="discourse-video-upload-modal"
-}}
+<DModalBody
+  @title="discourse_video.modal_title"
+  @subtitle="discourse_video.modal_subtitle"
+  @class="discourse-video-upload-modal"
+>
 
   <h3>{{i18n "discourse_video.file"}}</h3>
   <p>
@@ -19,18 +19,18 @@
         type="file"
         style="visibility: hidden; position: absolute;"
         onchange={{action "fileChanged"}}
-      >
+      />
     </label>
   </p>
 
   {{#if uploading}}
     {{uploadProgress}}
   {{else}}
-    {{d-button
-      action="upload"
-      icon="upload"
-      label="upload"
-      disabled=uploadDisabled
-    }}
+    <DButton
+      @action={{"upload"}}
+      @icon="upload"
+      @label="upload"
+      @disabled={{uploadDisabled}}
+    />
   {{/if}}
-{{/d-modal-body}}
+</DModalBody>
