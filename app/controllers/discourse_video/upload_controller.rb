@@ -2,7 +2,7 @@
 
 module DiscourseVideo
   class UploadController < ::ApplicationController
-    requires_plugin DiscourseVideo
+    requires_plugin DiscourseVideo::PLUGIN_NAME
 
     before_action :ensure_logged_in, :check_upload_permission, except: [:webhook]
 

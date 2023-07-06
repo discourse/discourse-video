@@ -2,7 +2,7 @@
 
 module DiscourseVideo
   class DisplayController < ::ApplicationController
-    requires_plugin DiscourseVideo
+    requires_plugin DiscourseVideo::PLUGIN_NAME
 
     def get_playback_id
       video_id = params.require(:video_id)
