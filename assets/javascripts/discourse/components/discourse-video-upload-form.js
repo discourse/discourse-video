@@ -4,6 +4,7 @@ import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import I18n from "I18n";
 import { inject as service } from "@ember/service";
+import { Promise } from "rsvp";
 
 const UPCHUNK = window.UpChunk;
 
@@ -11,11 +12,14 @@ export default Component.extend({
   dialog: service(),
   file: null,
   afterUploadComplete: null,
+  videoDurationMinutes: null,
+  maxVideoDurationMinutes: null,
 
   willDestroyElement() {
     this._super(...arguments);
 
     this.set("file", null);
+    this.set("videoDurationMinutes", null);
   },
 
   @discourseComputed("file")
@@ -35,6 +39,23 @@ export default Component.extend({
       " " +
       ["B", "kB", "MB", "GB", "TB"][i]
     );
+  },
+
+  async getVideoDuration(file) {
+    return new Promise((resolve, reject) => {
+      let video = document.createElement('video');
+      video.preload = 'metadata';
+
+      video.onloadedmetadata = () => {
+        resolve(video.duration);
+      };
+
+      video.onerror = () => {
+        reject('Error processing video file');
+      };
+
+      video.src = URL.createObjectURL(file);
+    });
   },
 
   setProgress(key, args) {
@@ -117,15 +138,45 @@ export default Component.extend({
     ).test(fileName);
   },
 
+  isDurationAllowed() {
+    if (this.currentUser.staff) {
+      return true;
+    }
+    if (this.currentUser.trust_level === 4 && this.videoDurationMinutes > this.siteSettings.discourse_video_max_duration_minutes_leaders) {
+      this.set("maxVideoDurationMinutes", this.siteSettings.discourse_video_max_duration_minutes_leaders);
+      return false;
+    }
+    if (this.currentUser.trust_level < 4 && this.videoDurationMinutes > this.siteSettings.discourse_video_max_duration_minutes) {
+      this.set("maxVideoDurationMinutes", this.siteSettings.discourse_video_max_duration_minutes);
+      return false;
+    }
+    return false;
+  },
+
+  durationString(duration) {
+    const minutes = parseInt(duration / 60, 10);
+    return minutes;
+  },
+
   actions: {
-    fileChanged(event) {
+    async fileChanged(event) {
       const file = event.target.files[0];
       this.set("file", file);
+      const duration = await this.getVideoDuration(file);
+      this.set("videoDurationMinutes", this.durationString(duration));
     },
 
     upload() {
       if (this.isAuthorizedVideo(this.file.name) && this.file.size > 0) {
-        this.createVideoObject();
+        if (this.isDurationAllowed()) {
+          this.createVideoObject();
+        } else {
+          this.dialog.alert(
+            I18n.t("discourse_video.post.errors.allowed_duration_exceeded", {
+              allowed_duration: this.maxVideoDurationMinutes,
+            })
+          );
+        }
       } else {
         this.dialog.alert(
           I18n.t("discourse_video.post.errors.upload_not_authorized", {

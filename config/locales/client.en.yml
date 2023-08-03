@@ -21,3 +21,4 @@ en:
       post:
         errors:
           upload_not_authorized: "Sorry, the file you are trying to upload is not authorized (authorized video extensions: %{authorized_extensions})."
+          allowed_duration_exceeded: "Sorry, the file you are trying to upload exceeds the allowed duration of %{allowed_duration} minutes."
