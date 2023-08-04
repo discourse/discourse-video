@@ -139,23 +139,29 @@ export default Component.extend({
   },
 
   isDurationAllowed() {
+    if (this.videoDurationMinutes === null) {
+      return false;
+    }
     if (this.currentUser.staff) {
       return true;
     }
-    if (this.currentUser.trust_level === 4 && this.videoDurationMinutes > this.siteSettings.discourse_video_max_duration_minutes_leaders) {
+    if (this.currentUser.trust_level === 4) {
       this.set("maxVideoDurationMinutes", this.siteSettings.discourse_video_max_duration_minutes_leaders);
-      return false;
+      if (this.videoDurationMinutes < this.siteSettings.discourse_video_max_duration_minutes_leaders) {
+        return true;
+      }
     }
-    if (this.currentUser.trust_level < 4 && this.videoDurationMinutes > this.siteSettings.discourse_video_max_duration_minutes) {
+    if (this.currentUser.trust_level < 4) {
       this.set("maxVideoDurationMinutes", this.siteSettings.discourse_video_max_duration_minutes);
-      return false;
+      if (this.videoDurationMinutes < this.siteSettings.discourse_video_max_duration_minutes) {
+        return true;
+      }
     }
     return false;
   },
 
-  durationString(duration) {
-    const minutes = parseInt(duration / 60, 10);
-    return minutes;
+  durationMinutes(duration) {
+    return parseInt(duration / 60, 10);
   },
 
   actions: {
@@ -163,7 +169,7 @@ export default Component.extend({
       const file = event.target.files[0];
       this.set("file", file);
       const duration = await this.getVideoDuration(file);
-      this.set("videoDurationMinutes", this.durationString(duration));
+      this.set("videoDurationMinutes", durationMinutes(duration));
     },
 
     upload() {
@@ -171,11 +177,19 @@ export default Component.extend({
         if (this.isDurationAllowed()) {
           this.createVideoObject();
         } else {
-          this.dialog.alert(
-            I18n.t("discourse_video.post.errors.allowed_duration_exceeded", {
-              allowed_duration: this.maxVideoDurationMinutes,
-            })
-          );
+          if (!this.maxVideoDurationMinutes) {
+            this.dialog.alert(
+              I18n.t("discourse_video.post.errors.duration_error", {
+                allowed_duration: this.maxVideoDurationMinutes,
+              })
+            );
+          } else {
+            this.dialog.alert(
+              I18n.t("discourse_video.post.errors.allowed_duration_exceeded", {
+                allowed_duration: this.maxVideoDurationMinutes,
+              })
+            );
+          }
         }
       } else {
         this.dialog.alert(
