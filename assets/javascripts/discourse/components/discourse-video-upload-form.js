@@ -43,15 +43,15 @@ export default Component.extend({
 
   async getVideoDuration(file) {
     return new Promise((resolve, reject) => {
-      let video = document.createElement('video');
-      video.preload = 'metadata';
+      let video = document.createElement("video");
+      video.preload = "metadata";
 
       video.onloadedmetadata = () => {
         resolve(video.duration);
       };
 
       video.onerror = () => {
-        reject('Error processing video file');
+        reject("Error processing video file");
       };
 
       video.src = URL.createObjectURL(file);
@@ -146,14 +146,26 @@ export default Component.extend({
       return true;
     }
     if (this.currentUser.trust_level === 4) {
-      this.set("maxVideoDurationMinutes", this.siteSettings.discourse_video_max_duration_minutes_leaders);
-      if (this.videoDurationMinutes < this.siteSettings.discourse_video_max_duration_minutes_leaders) {
+      this.set(
+        "maxVideoDurationMinutes",
+        this.siteSettings.discourse_video_max_duration_minutes_leaders
+      );
+      if (
+        this.videoDurationMinutes <
+        this.siteSettings.discourse_video_max_duration_minutes_leaders
+      ) {
         return true;
       }
     }
     if (this.currentUser.trust_level < 4) {
-      this.set("maxVideoDurationMinutes", this.siteSettings.discourse_video_max_duration_minutes);
-      if (this.videoDurationMinutes < this.siteSettings.discourse_video_max_duration_minutes) {
+      this.set(
+        "maxVideoDurationMinutes",
+        this.siteSettings.discourse_video_max_duration_minutes
+      );
+      if (
+        this.videoDurationMinutes <
+        this.siteSettings.discourse_video_max_duration_minutes
+      ) {
         return true;
       }
     }
@@ -169,7 +181,7 @@ export default Component.extend({
       const file = event.target.files[0];
       this.set("file", file);
       const duration = await this.getVideoDuration(file);
-      this.set("videoDurationMinutes", durationMinutes(duration));
+      this.set("videoDurationMinutes", this.durationMinutes(duration));
     },
 
     upload() {

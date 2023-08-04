@@ -1,15 +1,8 @@
 import componentTest, {
   setupRenderingTest,
 } from "discourse/tests/helpers/component-test";
-import {
-  discourseModule,
-  exists,
-  query,
-} from "discourse/tests/helpers/qunit-helpers";
-import { click } from "@ember/test-helpers";
+import { discourseModule } from "discourse/tests/helpers/qunit-helpers";
 import hbs from "htmlbars-inline-precompile";
-import I18n from "I18n";
-import { set } from "@ember/object";
 import { getOwner } from "discourse-common/lib/get-owner";
 
 discourseModule(
@@ -19,9 +12,7 @@ discourseModule(
 
     componentTest("Converts to minutes", {
       template: hbs`<DiscourseVideoUploadForm/>`,
-      beforeEach() {
 
-      },
       test(assert) {
         const component = this.owner.lookup('component:discourse-video-upload-form');
         assert.strictEqual(component.durationMinutes(60),1);
@@ -48,9 +39,7 @@ discourseModule(
 
     componentTest("Trust level 1 users have a duration limit", {
       template: hbs`<DiscourseVideoUploadForm/>`,
-      beforeEach() {
 
-      },
       test(assert) {
         const component = getOwner(this).lookup('component:discourse-video-upload-form');
 
@@ -67,9 +56,7 @@ discourseModule(
 
     componentTest("Trust level 1 users can upload if under the duration limit", {
       template: hbs`<DiscourseVideoUploadForm/>`,
-      beforeEach() {
 
-      },
       test(assert) {
         const component = getOwner(this).lookup('component:discourse-video-upload-form');
 
@@ -86,9 +73,7 @@ discourseModule(
 
     componentTest("Trust level 4 users have a duration limit", {
       template: hbs`<DiscourseVideoUploadForm/>`,
-      beforeEach() {
 
-      },
       test(assert) {
         const component = getOwner(this).lookup('component:discourse-video-upload-form');
 
@@ -105,9 +90,7 @@ discourseModule(
 
     componentTest("Trust level 4 users can upload if under the duration limit", {
       template: hbs`<DiscourseVideoUploadForm/>`,
-      beforeEach() {
 
-      },
       test(assert) {
         const component = getOwner(this).lookup('component:discourse-video-upload-form');
 
@@ -125,9 +108,7 @@ discourseModule(
 
     componentTest("Returns false if the duration could not be calculated", {
       template: hbs`<DiscourseVideoUploadForm/>`,
-      beforeEach() {
 
-      },
       test(assert) {
         const component = getOwner(this).lookup('component:discourse-video-upload-form');
 
