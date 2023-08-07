@@ -136,5 +136,24 @@ discourseModule(
         assert.strictEqual(component.maxVideoDurationMinutes, null);
       },
     });
+
+    componentTest("Staff can still upload if the duration could not be calculated", {
+      template: hbs`<DiscourseVideoUploadForm/>`,
+
+      test(assert) {
+        const component = getOwner(this).lookup(
+          "component:discourse-video-upload-form"
+        );
+
+        component.setProperties({
+          currentUser: { staff: true },
+          videoDurationMinutes: null,
+          siteSettings: { discourse_video_max_duration_minutes_leaders: 5 },
+        });
+
+        assert.strictEqual(component.isDurationAllowed(), true);
+        assert.strictEqual(component.maxVideoDurationMinutes, null);
+      },
+    });
   }
 );

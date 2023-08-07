@@ -140,11 +140,11 @@ export default Component.extend({
   },
 
   isDurationAllowed() {
-    if (this.videoDurationMinutes === null) {
-      return false;
-    }
     if (this.currentUser.staff) {
       return true;
+    }
+    if (this.videoDurationMinutes === null) {
+      return false;
     }
     if (this.currentUser.trust_level === 4) {
       this.set(
