@@ -24,3 +24,9 @@ plugins:
   discourse_video_enable_mp4_download:
     default: false
     client: true
+  discourse_video_max_duration_minutes:
+    default: 10
+    client: true
+  discourse_video_max_duration_minutes_leaders:
+    default: 60
+    client: true
