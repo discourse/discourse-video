@@ -20,6 +20,7 @@ export default Component.extend({
 
     this.set("file", null);
     this.set("videoDurationMinutes", null);
+    this.set("maxVideoDurationMinutes", null);
   },
 
   @discourseComputed("file")
