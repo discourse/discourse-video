@@ -191,9 +191,7 @@ export default Component.extend({
         } else {
           if (!this.maxVideoDurationMinutes) {
             this.dialog.alert(
-              I18n.t("discourse_video.post.errors.duration_error", {
-                allowed_duration: this.maxVideoDurationMinutes,
-              })
+              I18n.t("discourse_video.post.errors.duration_error")
             );
           } else {
             this.dialog.alert(
