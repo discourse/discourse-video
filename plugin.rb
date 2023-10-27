@@ -41,7 +41,7 @@ after_initialize do
     @user.trust_level >= SiteSetting.discourse_video_min_trust_level
   end
 
-  add_to_serializer(:post, :discourse_video, false) do
+  add_to_serializer(:post, :discourse_video, respect_plugin_enabled: false) do
     Array(DiscourseVideo::VideoPost.where(post_id: object.id).pluck(:video_info))
   end
 
