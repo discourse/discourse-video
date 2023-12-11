@@ -9,8 +9,11 @@ module DiscourseVideo
 
     belongs_to :user
 
-    validates :state, inclusion: { in: %w(pending ready errored waiting),
-                                   message: "%{value} is not a valid state" }
+    validates :state,
+              inclusion: {
+                in: %w[pending ready errored waiting],
+                message: "%{value} is not a valid state",
+              }
 
     def video_posts
       DiscourseVideo::VideoPost.where("video_info LIKE ?", "#{self.video_id}%")
@@ -25,9 +28,9 @@ module DiscourseVideo
     end
 
     def publish_change_to_clients!
-      Post.find(video_posts.pluck(:post_id)).each do |post|
-        post.publish_change_to_clients! :discourse_video_video_changed
-      end
+      Post
+        .find(video_posts.pluck(:post_id))
+        .each { |post| post.publish_change_to_clients! :discourse_video_video_changed }
     end
 
     def video_chat_messages
@@ -39,9 +42,11 @@ module DiscourseVideo
     end
 
     def publish_chat_message_change_to_clients!
-      ChatMessage.find(video_chat_messages.pluck(:message_id)).each do |chat_message|
-        ChatPublisher.publish_refresh!(chat_message.chat_channel, chat_message)
-      end
+      ChatMessage
+        .find(video_chat_messages.pluck(:message_id))
+        .each do |chat_message|
+          ChatPublisher.publish_refresh!(chat_message.chat_channel, chat_message)
+        end
     end
   end
 end

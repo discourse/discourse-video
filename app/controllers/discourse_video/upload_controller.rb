@@ -7,34 +7,39 @@ module DiscourseVideo
     before_action :ensure_logged_in, :check_upload_permission, except: [:webhook]
 
     skip_before_action :check_xhr,
-                      :preload_json,
-                      :verify_authenticity_token,
-                      :redirect_to_login_if_required,
-                      only: [:webhook]
+                       :preload_json,
+                       :verify_authenticity_token,
+                       :redirect_to_login_if_required,
+                       only: [:webhook]
 
     def create
       unless is_authorised_video? params["filename"]
-        raise Discourse::InvalidParameters, I18n.t("discourse_video.post.errors.upload_not_authorized", authorized_extensions: video_extensions_to_array.join(", "))
+        raise Discourse::InvalidParameters,
+              I18n.t(
+                "discourse_video.post.errors.upload_not_authorized",
+                authorized_extensions: video_extensions_to_array.join(", "),
+              )
       end
 
       hijack do
         begin
           result = MuxApi.create_direct_upload
-          video = DiscourseVideo::Video.new(
-            video_id: result["data"]["id"],
-            state: result["data"]["status"],
-            user: current_user
-          )
+          video =
+            DiscourseVideo::Video.new(
+              video_id: result["data"]["id"],
+              state: result["data"]["status"],
+              user: current_user,
+            )
           api_request_url = result["data"]["url"]
         ensure
           video.save!
         end
 
         render json: {
-          video_id: video.video_id,
-          api_request_url: api_request_url,
-          state: video.state
-        }
+                 video_id: video.video_id,
+                 api_request_url: api_request_url,
+                 state: video.state,
+               }
       end
     end
 
@@ -86,9 +91,7 @@ module DiscourseVideo
 
         if video
           files = data["data"]["static_renditions"]["files"]
-          files.each do |f|
-            filenames << f["name"]
-          end
+          files.each { |f| filenames << f["name"] }
 
           if filenames.include?("high.mp4")
             video.mp4_filename = "high.mp4"
@@ -98,11 +101,9 @@ module DiscourseVideo
 
           video.save!
         end
-
       end
 
       render json: success_json
-
     end
 
     def check_upload_permission
@@ -116,7 +117,8 @@ module DiscourseVideo
     end
 
     def video_extensions_to_array
-      SiteSetting.discourse_video_file_extensions
+      SiteSetting
+        .discourse_video_file_extensions
         .downcase
         .gsub(/[\s\.]+/, "")
         .split("|")
@@ -135,7 +137,12 @@ module DiscourseVideo
       mux_timestamp = mux_sig_array[0].gsub("t=", "")
       mux_hash = mux_sig_array[1].gsub("v1=", "")
       payload = "#{mux_timestamp}.#{request.body.string}"
-      our_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha256'), SiteSetting.discourse_video_mux_webhook_signing_secret, payload)
+      our_signature =
+        OpenSSL::HMAC.hexdigest(
+          OpenSSL::Digest.new("sha256"),
+          SiteSetting.discourse_video_mux_webhook_signing_secret,
+          payload,
+        )
 
       our_signature == mux_hash
     end

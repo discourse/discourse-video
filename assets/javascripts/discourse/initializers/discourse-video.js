@@ -1,16 +1,16 @@
 /* global Hls */
-import loadScript from "discourse/lib/load-script";
 import { ajax } from "discourse/lib/ajax";
+import loadScript from "discourse/lib/load-script";
 import { withPluginApi } from "discourse/lib/plugin-api";
-import showModal from "discourse/lib/show-modal";
 import { renderIcon } from "discourse-common/lib/icon-library";
-import I18n from "I18n";
-import { next } from "@ember/runloop";
+import I18n from "discourse-i18n";
+import DiscourseVideoUploadForm from "../components/modal/discourse-video-upload-form";
 
 const HLS_SCRIPT_URL = "/plugins/discourse-video/javascripts/hls.min.js";
 
 function initializeDiscourseVideo(api) {
   const siteSettings = api.container.lookup("site-settings:main");
+  const modal = api.container.lookup("service:modal");
   const user = api.getCurrentUser();
 
   function renderVideo(videoContainer, videoId) {
@@ -214,18 +214,8 @@ function initializeDiscourseVideo(api) {
     api.addComposerUploadHandler(
       siteSettings.discourse_video_file_extensions.split("|"),
       (files) => {
-        let file;
-        if (Array.isArray(files)) {
-          file = files[0];
-        } else {
-          file = files;
-        }
-
-        next(() => {
-          showModal("discourse-video-upload-modal").setProperties({
-            file,
-          });
-        });
+        const file = Array.isArray(files) ? files[0] : files;
+        modal.show(DiscourseVideoUploadForm, { model: { file } });
       }
     );
 
@@ -235,9 +225,7 @@ function initializeDiscourseVideo(api) {
         group: "insertions",
         icon: "video",
         title: "discourse_video.upload_toolbar_title",
-        perform: () => {
-          showModal("discourse-video-upload-modal");
-        },
+        perform: () => modal.show(DiscourseVideoUploadForm),
       });
     });
 
@@ -247,9 +235,11 @@ function initializeDiscourseVideo(api) {
       label: "discourse_video.upload_toolbar_title",
       position: "dropdown",
       action() {
-        const controller = showModal("discourse-video-upload-modal");
-        controller.set("afterUploadComplete", (videoTag) => {
-          this.addText(this.getSelected(), videoTag);
+        modal.show(DiscourseVideoUploadForm, {
+          model: {
+            afterUploadComplete: (videoTag) =>
+              this.addText(this.getSelected(), videoTag),
+          },
         });
       },
     });

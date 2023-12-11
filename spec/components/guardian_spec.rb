@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
 describe Guardian do
   let(:user) { Fabricate(:user, trust_level: TrustLevel[1]) }
@@ -12,9 +12,7 @@ describe Guardian do
   let(:adminGuardian) { Guardian.new(admin) }
   let(:moderatorGuardian) { Guardian.new(moderator) }
 
-  before do
-    SiteSetting.discourse_video_enabled = true
-  end
+  before { SiteSetting.discourse_video_enabled = true }
 
   describe "can_upload_video?" do
     it "returns true for users having specified trust level" do

@@ -1,7 +1,7 @@
-import { test } from "qunit";
 import { click, visit } from "@ember/test-helpers";
-import { acceptance, exists } from "discourse/tests/helpers/qunit-helpers";
+import { test } from "qunit";
 import { clearToolbarCallbacks } from "discourse/components/d-editor";
+import { acceptance, exists } from "discourse/tests/helpers/qunit-helpers";
 
 acceptance(
   "Discourse video upload button visibility in composer",

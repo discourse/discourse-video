@@ -10,15 +10,12 @@
 enabled_site_setting :discourse_video_enabled
 
 register_asset "vendor/upchunk.js"
-register_asset 'stylesheets/common/discourse-video.scss'
-register_asset 'stylesheets/desktop/discourse-video.scss', :desktop
-register_asset 'stylesheets/mobile/discourse-video.scss', :mobile
+register_asset "stylesheets/common/discourse-video.scss"
+register_asset "stylesheets/desktop/discourse-video.scss", :desktop
+register_asset "stylesheets/mobile/discourse-video.scss", :mobile
 register_svg_icon "fa-video"
 
-%w{
-  ../lib/discourse_video/engine.rb
-  ../lib/discourse_video/mux_api.rb
-}.each do |path|
+%w[../lib/discourse_video/engine.rb ../lib/discourse_video/mux_api.rb].each do |path|
   load File.expand_path(path, __FILE__)
 end
 
@@ -27,7 +24,7 @@ after_initialize do
 
   reloadable_patch do |plugin|
     class ::Post
-      has_many :discourse_video, class_name: 'DiscourseVideo::VideoPost'
+      has_many :discourse_video, class_name: "DiscourseVideo::VideoPost"
     end
   end
 
@@ -45,27 +42,22 @@ after_initialize do
     Array(DiscourseVideo::VideoPost.where(post_id: object.id).pluck(:video_info))
   end
 
-  add_to_serializer(:current_user, :can_upload_video) do
-    Guardian.new(scope.user).can_upload_video?
-  end
+  add_to_serializer(:current_user, :can_upload_video) { Guardian.new(scope.user).can_upload_video? }
 
   on(:post_process_cooked) do |doc, post|
     video_ids = []
 
-    doc.css("div/@data-video-id").each do |media|
-      if video = DiscourseVideo::Video.find_by_video_id(media.value)
-        video_ids << video.video_info
+    doc
+      .css("div/@data-video-id")
+      .each do |media|
+        if video = DiscourseVideo::Video.find_by_video_id(media.value)
+          video_ids << video.video_info
+        end
       end
-    end
 
     DiscourseVideo::VideoPost.where(post_id: post.id).delete_all
     if video_ids.size > 0
-      params = video_ids.map do |val|
-        {
-          post_id: post.id,
-          video_info: val
-        }
-      end
+      params = video_ids.map { |val| { post_id: post.id, video_info: val } }
       DiscourseVideo::VideoPost.create!(params)
     end
 
@@ -75,25 +67,20 @@ after_initialize do
   on(:chat_message_processed) do |doc, message|
     video_ids = []
 
-    doc.css("div/@data-video-id").each do |media|
-      if video = DiscourseVideo::Video.find_by_video_id(media.value)
-        video_ids << video.video_info
+    doc
+      .css("div/@data-video-id")
+      .each do |media|
+        if video = DiscourseVideo::Video.find_by_video_id(media.value)
+          video_ids << video.video_info
+        end
       end
-    end
 
     DiscourseVideo::VideoChatMessage.where(message_id: message.id).delete_all
     if video_ids.size > 0
-      params = video_ids.map do |val|
-        {
-          message_id: message.id,
-          video_info: val
-        }
-      end
+      params = video_ids.map { |val| { message_id: message.id, video_info: val } }
       DiscourseVideo::VideoChatMessage.create!(params)
     end
   end
 
-  if respond_to?(:discourse_chat)
-    discourse_chat&.enable_markdown_feature('discourse-video')
-  end
+  discourse_chat&.enable_markdown_feature("discourse-video") if respond_to?(:discourse_chat)
 end
