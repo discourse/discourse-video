@@ -10,6 +10,7 @@ import { popupAjaxError } from "discourse/lib/ajax-error";
 import dIcon from "discourse-common/helpers/d-icon";
 import i18n from "discourse-common/helpers/i18n";
 import I18n from "discourse-i18n";
+import not from "truth-helpers/helpers/not";
 
 const UPCHUNK = window.UpChunk;
 
@@ -21,7 +22,6 @@ export default class DiscourseVideoUploadForm extends Component {
 
   @tracked file = this.args.model?.file || null;
   @tracked videoDurationMinutes = null;
-  @tracked maxVideoDurationMinutes = null;
   @tracked uploadProgress;
   @tracked videoInfo;
   @tracked uploading = false;
@@ -30,6 +30,23 @@ export default class DiscourseVideoUploadForm extends Component {
 
   get fileSize() {
     return this.humanFilesize(this.file.size);
+  }
+
+  get isDurationAllowed() {
+    if (this.currentUser.staff || this.videoDurationMinutes === null) {
+      return true;
+    }
+
+    return (
+      this.videoDurationMinutes < this.maxVideoDurationMinutes &&
+      this.currentUser.trust_level === 4
+    );
+  }
+
+  get maxVideoDurationMinutes() {
+    return this.currentUser.trust_level === 4
+      ? this.siteSettings.discourse_video_max_duration_minutes_leaders
+      : this.siteSettings.discourse_video_max_duration_minutes;
   }
 
   @action
@@ -43,21 +60,18 @@ export default class DiscourseVideoUploadForm extends Component {
   @action
   upload() {
     if (this.isAuthorizedVideo(this.file.name) && this.file.size > 0) {
-      if (this.isDurationAllowed()) {
-        this.createVideoObject();
-      } else {
-        if (!this.maxVideoDurationMinutes) {
-          this.dialog.alert(
-            I18n.t("discourse_video.post.errors.duration_error")
+      this.isDurationAllowed
+        ? this.createVideoObject()
+        : this.dialog.alert(
+            !this.maxVideoDurationMinutes
+              ? I18n.t("discourse_video.post.errors.duration_error")
+              : I18n.t(
+                  "discourse_video.post.errors.allowed_duration_exceeded",
+                  {
+                    allowed_duration: this.maxVideoDurationMinutes,
+                  }
+                )
           );
-        } else {
-          this.dialog.alert(
-            I18n.t("discourse_video.post.errors.allowed_duration_exceeded", {
-              allowed_duration: this.maxVideoDurationMinutes,
-            })
-          );
-        }
-      }
     } else {
       this.dialog.alert(
         I18n.t("discourse_video.post.errors.upload_not_authorized", {
@@ -142,11 +156,7 @@ export default class DiscourseVideoUploadForm extends Component {
     } else {
       this.appEvents.trigger("composer:insert-text", videoTag);
     }
-    this.sendAction("closeModal");
-  }
-
-  get uploadDisabled() {
-    return !this.file;
+    this.args.closeModal();
   }
 
   videoExtensionsToArray() {
@@ -154,7 +164,7 @@ export default class DiscourseVideoUploadForm extends Component {
       .toLowerCase()
       .replace(/[\s\.]+/g, "")
       .split("|")
-      .filter((ext) => ext.indexOf("*") === -1);
+      .filter((ext) => !ext.includes("*"));
   }
 
   isAuthorizedVideo(fileName) {
@@ -162,30 +172,6 @@ export default class DiscourseVideoUploadForm extends Component {
       `\\.(${this.videoExtensionsToArray().join("|")})$`,
       "i"
     ).test(fileName);
-  }
-
-  isDurationAllowed() {
-    if (this.currentUser.staff) {
-      return true;
-    }
-    if (this.videoDurationMinutes === null) {
-      return false;
-    }
-    if (this.currentUser.trust_level === 4) {
-      this.maxVideoDurationMinutes =
-        this.siteSettings.discourse_video_max_duration_minutes_leaders;
-      if (this.videoDurationMinutes < this.maxVideoDurationMinutes) {
-        return true;
-      }
-    }
-    if (this.currentUser.trust_level < 4) {
-      this.maxVideoDurationMinutes =
-        this.siteSettings.discourse_video_max_duration_minutes;
-      if (this.videoDurationMinutes < this.maxVideoDurationMinutes) {
-        return true;
-      }
-    }
-    return false;
   }
 
   durationMinutes(duration) {
@@ -211,10 +197,10 @@ export default class DiscourseVideoUploadForm extends Component {
       <:body>
         <h3>{{i18n "discourse_video.file"}}</h3>
         <p>
-          {{~#if this.file}}
+          {{#if this.file}}
             {{this.file.name}}
             ({{this.fileSize}})
-          {{~/if}}
+          {{/if}}
           <label
             class="btn"
             disabled={{this.uploading}}
@@ -238,7 +224,7 @@ export default class DiscourseVideoUploadForm extends Component {
             @action={{this.upload}}
             @icon="upload"
             @label="upload"
-            @disabled={{this.uploadDisabled}}
+            @disabled={{not this.file}}
           />
         {{/if}}
       </:footer>
