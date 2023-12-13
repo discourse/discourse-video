@@ -110,6 +110,7 @@ export default class DiscourseVideoUploadForm extends Component {
       });
       this.setupUpChunk(videoInfo);
     } catch (reason) {
+      this.uploading = false;
       this.setProgress("error");
       popupAjaxError(reason);
     }
