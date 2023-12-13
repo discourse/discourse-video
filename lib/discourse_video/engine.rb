@@ -10,7 +10,7 @@ module DiscourseVideo
 
     config.after_initialize do
       Discourse::Application.routes.append do
-        mount ::DiscourseVideo::Engine, at: '/discourse_video'
+        mount ::DiscourseVideo::Engine, at: "/discourse_video"
       end
     end
   end

@@ -15,6 +15,11 @@
   }
 }
 
+#video-upload-input {
+  visibility: hidden;
+  position: absolute;
+}
+
 .mux-video {
   width: 100%;
 }

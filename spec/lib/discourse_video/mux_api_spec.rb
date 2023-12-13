@@ -2,7 +2,6 @@
 require "rails_helper"
 
 describe DiscourseVideo::MuxApi do
-
   let(:url) { "https://api.mux.com/video/v1/uploads" }
 
   before do
@@ -11,29 +10,25 @@ describe DiscourseVideo::MuxApi do
   end
 
   describe "creating video with mp4 support" do
-
-    before do
-      SiteSetting.discourse_video_enable_mp4_download = true
-    end
+    before { SiteSetting.discourse_video_enable_mp4_download = true }
 
     body = {
       new_asset_settings: {
         playback_policy: ["public"],
-        mp4_support: "standard"
+        mp4_support: "standard",
       },
       cors_origin: "*",
     }
 
     let!(:creation_stub) do
-      stub_request(:post, url).
-        with(
-           body: body.to_json,
-           headers: {
-             'Authorization' => 'Basic OTg3NjU0MzIxOmFiYw==',
-             'Content-Type' => 'application/json',
-             'Host' => 'api.mux.com'
-           }).
-        to_return(status: 200, body: {}.to_json, headers: {})
+      stub_request(:post, url).with(
+        body: body.to_json,
+        headers: {
+          "Authorization" => "Basic OTg3NjU0MzIxOmFiYw==",
+          "Content-Type" => "application/json",
+          "Host" => "api.mux.com",
+        },
+      ).to_return(status: 200, body: {}.to_json, headers: {})
     end
 
     it "creates with mp4 support" do
@@ -43,28 +38,25 @@ describe DiscourseVideo::MuxApi do
   end
 
   describe "creating video without mp4 support" do
-    before do
-      SiteSetting.discourse_video_enable_mp4_download = false
-    end
+    before { SiteSetting.discourse_video_enable_mp4_download = false }
 
     body = {
       new_asset_settings: {
         playback_policy: ["public"],
-        mp4_support: "none"
+        mp4_support: "none",
       },
       cors_origin: "*",
     }
 
     let!(:creation_stub) do
-      stub_request(:post, url).
-        with(
-           body: body.to_json,
-           headers: {
-             'Authorization' => 'Basic OTg3NjU0MzIxOmFiYw==',
-             'Content-Type' => 'application/json',
-             'Host' => 'api.mux.com'
-           }).
-        to_return(status: 200, body: {}.to_json, headers: {})
+      stub_request(:post, url).with(
+        body: body.to_json,
+        headers: {
+          "Authorization" => "Basic OTg3NjU0MzIxOmFiYw==",
+          "Content-Type" => "application/json",
+          "Host" => "api.mux.com",
+        },
+      ).to_return(status: 200, body: {}.to_json, headers: {})
     end
 
     it "creates without mp4 support" do
@@ -72,5 +64,4 @@ describe DiscourseVideo::MuxApi do
       expect(creation_stub).to have_been_requested.once
     end
   end
-
 end
