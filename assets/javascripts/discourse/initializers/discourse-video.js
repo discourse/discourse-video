@@ -9,7 +9,7 @@ import DiscourseVideoUploadForm from "../components/modal/discourse-video-upload
 const HLS_SCRIPT_URL = "/plugins/discourse-video/javascripts/hls.min.js";
 
 function initializeDiscourseVideo(api) {
-  const siteSettings = api.container.lookup("site-settings:main");
+  const siteSettings = api.container.lookup("service:site-settings");
   const modal = api.container.lookup("service:modal");
   const user = api.getCurrentUser();
 
@@ -250,7 +250,7 @@ export default {
   name: "discourse-video",
 
   initialize(container) {
-    const siteSettings = container.lookup("site-settings:main");
+    const siteSettings = container.lookup("service:site-settings");
 
     if (siteSettings.discourse_video_enabled) {
       withPluginApi("0.8.31", initializeDiscourseVideo);

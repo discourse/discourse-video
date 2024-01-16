@@ -5,7 +5,6 @@
 # version: 0.1
 # authors: Blake Erickson
 # url: https://github.com/discourse/discourse-video
-# transpile_js: true
 
 enabled_site_setting :discourse_video_enabled
 
