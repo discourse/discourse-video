@@ -14,18 +14,14 @@ register_asset "stylesheets/desktop/discourse-video.scss", :desktop
 register_asset "stylesheets/mobile/discourse-video.scss", :mobile
 register_svg_icon "fa-video"
 
-%w[../lib/discourse_video/engine.rb ../lib/discourse_video/mux_api.rb].each do |path|
-  load File.expand_path(path, __FILE__)
-end
+require_relative "lib/discourse_video/engine"
+require_relative "lib/discourse_video/mux_api"
 
 after_initialize do
   require_relative "app/controllers/discourse_video/display_controller.rb"
+  require_relative "lib/discourse_video/post_extension"
 
-  reloadable_patch do |plugin|
-    class ::Post
-      has_many :discourse_video, class_name: "DiscourseVideo::VideoPost"
-    end
-  end
+  reloadable_patch { |plugin| Post.prepend(DiscourseVideo::PostExtension) }
 
   TopicView.on_preload do |topic_view|
     topic_view.instance_variable_set(:@posts, topic_view.posts.includes(:discourse_video))
