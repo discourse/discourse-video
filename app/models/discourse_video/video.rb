@@ -50,3 +50,24 @@ module DiscourseVideo
     end
   end
 end
+
+# == Schema Information
+#
+# Table name: discourse_video_videos
+#
+#  id                :bigint           not null, primary key
+#  video_id          :string           not null
+#  state             :string           not null
+#  secret_access_key :string
+#  asset_id          :string
+#  playback_id       :string
+#  callback_key      :string
+#  created_at        :datetime
+#  updated_at        :datetime
+#  user_id           :integer
+#  mp4_filename      :string
+#
+# Indexes
+#
+#  index_discourse_video_videos_on_video_id  (video_id) UNIQUE
+#
