@@ -14,8 +14,8 @@ acceptance("Discourse video disabled", function (needs) {
     await visit("/");
     await click("#create-topic");
 
-    assert.ok(
-      !exists(".discourse-video-upload"),
+    assert.notOk(
+      exists(".discourse-video-upload"),
       "the upload video button is not available"
     );
   });
