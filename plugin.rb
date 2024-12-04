@@ -12,7 +12,7 @@ register_asset "vendor/upchunk.js"
 register_asset "stylesheets/common/discourse-video.scss"
 register_asset "stylesheets/desktop/discourse-video.scss", :desktop
 register_asset "stylesheets/mobile/discourse-video.scss", :mobile
-register_svg_icon "fa-video"
+register_svg_icon "video"
 
 require_relative "lib/discourse_video/engine"
 require_relative "lib/discourse_video/mux_api"
