@@ -5,11 +5,10 @@ import { service } from "@ember/service";
 import { Promise } from "rsvp";
 import DButton from "discourse/components/d-button";
 import DModal from "discourse/components/d-modal";
+import dIcon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
-import dIcon from "discourse-common/helpers/d-icon";
-import i18n from "discourse-common/helpers/i18n";
-import I18n from "discourse-i18n";
+import { i18n } from "discourse-i18n";
 import not from "truth-helpers/helpers/not";
 
 const UPCHUNK = window.UpChunk;
@@ -64,17 +63,14 @@ export default class DiscourseVideoUploadForm extends Component {
         ? this.createVideoObject()
         : this.dialog.alert(
             !this.maxVideoDurationMinutes
-              ? I18n.t("discourse_video.post.errors.duration_error")
-              : I18n.t(
-                  "discourse_video.post.errors.allowed_duration_exceeded",
-                  {
-                    allowed_duration: this.maxVideoDurationMinutes,
-                  }
-                )
+              ? i18n("discourse_video.post.errors.duration_error")
+              : i18n("discourse_video.post.errors.allowed_duration_exceeded", {
+                  allowed_duration: this.maxVideoDurationMinutes,
+                })
           );
     } else {
       this.dialog.alert(
-        I18n.t("discourse_video.post.errors.upload_not_authorized", {
+        i18n("discourse_video.post.errors.upload_not_authorized", {
           authorized_extensions: this.videoExtensionsToArray().join(", "),
         })
       );
@@ -117,10 +113,7 @@ export default class DiscourseVideoUploadForm extends Component {
   }
 
   setProgress(key, args) {
-    this.uploadProgress = I18n.t(
-      `discourse_video.upload_progress.${key}`,
-      args
-    );
+    this.uploadProgress = i18n(`discourse_video.upload_progress.${key}`, args);
   }
 
   setupUpChunk(videoInfo) {

@@ -1,9 +1,9 @@
 /* global Hls */
 import { ajax } from "discourse/lib/ajax";
+import { renderIcon } from "discourse/lib/icon-library";
 import loadScript from "discourse/lib/load-script";
 import { withPluginApi } from "discourse/lib/plugin-api";
-import { renderIcon } from "discourse-common/lib/icon-library";
-import I18n from "discourse-i18n";
+import { i18n } from "discourse-i18n";
 import DiscourseVideoUploadForm from "../components/modal/discourse-video-upload-form";
 
 const HLS_SCRIPT_URL = "/plugins/discourse-video/javascripts/hls.min.js";
@@ -59,7 +59,7 @@ function initializeDiscourseVideo(api) {
       ajax(`/discourse_video/playback_id/${videoId}`).then((data) => {
         let downloadLink = document.createElement("a");
         let text = document.createTextNode(
-          I18n.t("discourse_video.download_video")
+          i18n("discourse_video.download_video")
         );
         downloadLink.className = "download-mux-video";
         downloadLink.appendChild(text);
@@ -76,19 +76,19 @@ function initializeDiscourseVideo(api) {
   const placeholders = {
     pending: {
       iconHtml: "<div class='spinner'></div>",
-      string: I18n.t("discourse_video.state.pending"),
+      string: i18n("discourse_video.state.pending"),
     },
     waiting: {
       iconHtml: "<div class='spinner'></div>",
-      string: I18n.t("discourse_video.state.pending"),
+      string: i18n("discourse_video.state.pending"),
     },
     errored: {
       iconHtml: renderIcon("string", "triangle-exclamation"),
-      string: I18n.t("discourse_video.state.errored"),
+      string: i18n("discourse_video.state.errored"),
     },
     unknown: {
       iconHtml: renderIcon("string", "circle-question"),
-      string: I18n.t("discourse_video.state.unknown"),
+      string: i18n("discourse_video.state.unknown"),
     },
   };
 
