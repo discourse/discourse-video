@@ -119,9 +119,13 @@ function initializeDiscourseVideo(api) {
   }
 
   function renderVideos(elem, post) {
+    if (!post?.discourse_video) {
+      return;
+    }
+
     elem.querySelectorAll("div[data-video-id]").forEach(function (container) {
       const videoId = container.getAttribute("data-video-id").toString();
-      if (!post?.discourse_video || !videoId) {
+      if (!videoId) {
         return;
       }
 
@@ -149,7 +153,7 @@ function initializeDiscourseVideo(api) {
         const videoId = container
           .getAttribute("data-download-video-id")
           .toString();
-        if (!post.discourse_video || !videoId) {
+        if (!videoId) {
           return;
         }
 
