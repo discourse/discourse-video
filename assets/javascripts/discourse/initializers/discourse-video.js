@@ -121,7 +121,7 @@ function initializeDiscourseVideo(api) {
   function renderVideos(elem, post) {
     elem.querySelectorAll("div[data-video-id]").forEach(function (container) {
       const videoId = container.getAttribute("data-video-id").toString();
-      if (!post.discourse_video || !videoId) {
+      if (!post?.discourse_video || !videoId) {
         return;
       }
 
