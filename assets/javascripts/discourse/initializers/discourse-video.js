@@ -170,7 +170,8 @@ function initializeDiscourseVideo(api) {
 
   api.decorateCookedElement(
     (elem, helper) => {
-      const post = helper && typeof helper.getModel === "function" && helper.getModel();
+      const post =
+        helper && typeof helper.getModel === "function" && helper.getModel();
       if (!post) {
         elem.querySelectorAll("div[data-video-id]").forEach((container) => {
           container.innerHTML = `
