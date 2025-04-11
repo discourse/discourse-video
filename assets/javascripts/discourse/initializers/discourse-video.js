@@ -170,18 +170,19 @@ function initializeDiscourseVideo(api) {
 
   api.decorateCookedElement(
     (elem, helper) => {
-      if (helper) {
-        const post = helper.getModel();
-        renderVideos(elem, post);
-      } else {
-        elem
-          .querySelectorAll("div[data-video-id]")
-          .forEach(function (container) {
-            container.innerHTML = `<p><div class="onebox-placeholder-container">
-            <span class="placeholder-icon video"></span>
-          </div></p>`;
-          });
+      const post = helper && typeof helper.getModel === "function" && helper.getModel();
+      if (!post) {
+        elem.querySelectorAll("div[data-video-id]").forEach((container) => {
+          container.innerHTML = `
+            <p>
+              <div class="onebox-placeholder-container">
+                <span class="placeholder-icon video"></span>
+              </div>
+            </p>`;
+        });
+        return;
       }
+      renderVideos(elem, post);
     },
     { id: "discourse-video" }
   );
