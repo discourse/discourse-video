@@ -36,10 +36,7 @@ export default class DiscourseVideoUploadForm extends Component {
       return true;
     }
 
-    return (
-      this.videoDurationMinutes < this.maxVideoDurationMinutes &&
-      this.currentUser.trust_level === 4
-    );
+    return this.videoDurationMinutes < this.maxVideoDurationMinutes;
   }
 
   get maxVideoDurationMinutes() {
