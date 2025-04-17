@@ -1,4 +1,4 @@
-import { click, fillIn, settled, visit } from "@ember/test-helpers";
+import { click, fillIn, visit } from "@ember/test-helpers";
 import { test } from "qunit";
 import { clearToolbarCallbacks } from "discourse/components/d-editor";
 import { acceptance } from "discourse/tests/helpers/qunit-helpers";
