@@ -1,4 +1,4 @@
-import { click, visit } from "@ember/test-helpers";
+import { click, fillIn, settled, visit } from "@ember/test-helpers";
 import { test } from "qunit";
 import { clearToolbarCallbacks } from "discourse/components/d-editor";
 import { acceptance } from "discourse/tests/helpers/qunit-helpers";
@@ -9,6 +9,7 @@ acceptance("Discourse video enabled", function (needs) {
     discourse_video_enabled: true,
     discourse_video_file_extensions: "mp4|mov|wmv|avi|mkv|mpg|mpeg|ogg",
     discourse_video_min_trust_level: 1,
+    allow_uncategorized_topics: true,
   });
   needs.hooks.beforeEach(() => clearToolbarCallbacks());
 
@@ -41,13 +42,11 @@ acceptance("Discourse video enabled", function (needs) {
     // This is for just testing the placeholder so we don't need to
     // go through the whole upload flow and mocking upload requests
     // to mux.
-    const composer = document.querySelector(".d-editor-input");
-    const videoTag = "[video=8kDeYZD5hHftgpWaTHTcjUuxt8s5qkQq]";
-    composer.value = videoTag;
-    composer.dispatchEvent(new Event("input", { bubbles: true }));
+    await fillIn(".d-editor-input", "[video=8kDeYZD5hHftgpWaTHTcjUuxt8s5qkQq]");
 
     // Wait a bit for the preview to update
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    //await new Promise((resolve) => setTimeout(resolve, 500));
+    await settled();
 
     // Check if the preview pane shows the video container
     assert
