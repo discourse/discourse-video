@@ -32,4 +32,44 @@ acceptance("Discourse video enabled", function (needs) {
       .dom(".discourse-video-upload-modal label.btn")
       .exists("the upload button is present");
   });
+
+  test("Shows video placeholder in composer", async function (assert) {
+    await visit("/");
+    await click("#create-topic");
+
+    // Get the composer element and set its value directly
+    // This is for just testing the placeholder so we don't need to
+    // go through the whole upload flow and mocking upload requests
+    // to mux.
+    const composer = document.querySelector(".d-editor-input");
+    const videoTag = "[video=8kDeYZD5hHftgpWaTHTcjUuxt8s5qkQq]";
+    composer.value = videoTag;
+    composer.dispatchEvent(new Event("input", { bubbles: true }));
+
+    // Wait a bit for the preview to update
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Check if the preview pane shows the video container
+    assert
+      .dom(".d-editor-preview .discourse-video-container")
+      .exists("video container appears in preview");
+
+    // Check if it has the correct video ID
+    assert
+      .dom(".d-editor-preview .discourse-video-container")
+      .hasAttribute(
+        "data-video-id",
+        "8kDeYZD5hHftgpWaTHTcjUuxt8s5qkQq",
+        "video container has the correct video ID"
+      );
+
+    // Check if the placeholder elements exist
+    assert
+      .dom(".d-editor-preview .onebox-placeholder-container")
+      .exists("placeholder container appears in preview");
+
+    assert
+      .dom(".d-editor-preview .placeholder-icon.video")
+      .exists("video placeholder icon appears in preview");
+  });
 });
