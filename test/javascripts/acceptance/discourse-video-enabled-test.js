@@ -44,10 +44,6 @@ acceptance("Discourse video enabled", function (needs) {
     // to mux.
     await fillIn(".d-editor-input", "[video=8kDeYZD5hHftgpWaTHTcjUuxt8s5qkQq]");
 
-    // Wait a bit for the preview to update
-    //await new Promise((resolve) => setTimeout(resolve, 500));
-    await settled();
-
     // Check if the preview pane shows the video container
     assert
       .dom(".d-editor-preview .discourse-video-container")
