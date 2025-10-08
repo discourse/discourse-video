@@ -259,7 +259,7 @@ export default {
     const siteSettings = container.lookup("service:site-settings");
 
     if (siteSettings.discourse_video_enabled) {
-      withPluginApi("0.8.31", initializeDiscourseVideo);
+      withPluginApi(initializeDiscourseVideo);
     }
   },
 };
