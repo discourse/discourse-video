@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails_helper"
-
 describe Guardian do
   let(:user) { Fabricate(:user, trust_level: TrustLevel[1]) }
   let(:user1) { Fabricate(:user, trust_level: TrustLevel[0]) }

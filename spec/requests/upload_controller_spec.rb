@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails_helper"
-
 def mux_signature(data)
   timestamp = 1234
   mux_header = "t=#{timestamp},v1="
