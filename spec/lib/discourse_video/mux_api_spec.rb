@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-require "rails_helper"
 
 describe DiscourseVideo::MuxApi do
   let(:url) { "https://api.mux.com/video/v1/uploads" }
