@@ -1,7 +1,7 @@
 import { click, visit } from "@ember/test-helpers";
 import { test } from "qunit";
 import { clearToolbarCallbacks } from "discourse/components/d-editor";
-import { acceptance, exists } from "discourse/tests/helpers/qunit-helpers";
+import { acceptance } from "discourse/tests/helpers/qunit-helpers";
 
 acceptance(
   "Discourse video upload button visibility in composer",
@@ -14,14 +14,13 @@ acceptance(
     });
     needs.hooks.beforeEach(() => clearToolbarCallbacks());
 
-    test("it does not show upload button when can_upload_video is false", async function (assert) {
+    test("does not show upload button when can_upload_video is false", async function (assert) {
       await visit("/");
       await click("#create-topic");
 
-      assert.notOk(
-        exists(".discourse-video-upload"),
-        "the upload video button is not available"
-      );
+      assert
+        .dom(".discourse-video-upload")
+        .doesNotExist("the upload video button is not available");
     });
   }
 );
