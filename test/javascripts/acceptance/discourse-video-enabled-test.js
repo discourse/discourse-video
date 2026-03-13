@@ -13,7 +13,7 @@ acceptance("Discourse video enabled", function (needs) {
   });
   needs.hooks.beforeEach(() => clearToolbarCallbacks());
 
-  test("Shows upload video button in composer", async function (assert) {
+  test("shows upload video button in composer", async function (assert) {
     await visit("/");
     await click("#create-topic");
 
@@ -22,7 +22,7 @@ acceptance("Discourse video enabled", function (needs) {
       .exists("the upload video button is available");
   });
 
-  test("Displays video upload modal", async function (assert) {
+  test("displays video upload modal", async function (assert) {
     await visit("/t/internationalization-localization/280");
     await click("#post_1 .show-more-actions");
     await click("#post_1 .edit");
@@ -34,7 +34,7 @@ acceptance("Discourse video enabled", function (needs) {
       .exists("the upload button is present");
   });
 
-  test("Shows video placeholder in composer", async function (assert) {
+  test("shows video placeholder in composer", async function (assert) {
     await visit("/");
     await click("#create-topic");
 
