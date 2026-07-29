@@ -64,6 +64,25 @@ describe DiscourseVideo::UploadController do
       expect(response.status).to eq(200)
     end
 
+    it "rejects ready events signed with the blank default secret" do
+      SiteSetting.discourse_video_mux_webhook_signing_secret = ""
+
+      post "/discourse_video/webhook",
+           params: JSON.parse(ready_data),
+           as: :json,
+           headers: {
+             "Content-Type" => "aplication/json",
+             "Mux-Signature" => mux_signature(ready_data),
+           }
+
+      expect(response.status).to eq(403)
+      expect(response.parsed_body["errors"]).to be_present
+      expect(video.reload).to have_attributes(
+        state: DiscourseVideo::Video::WAITING,
+        playback_id: nil,
+      )
+    end
+
     it "changes status of video from verified requests" do
       expect do
         post "/discourse_video/webhook",
