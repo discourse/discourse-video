@@ -126,6 +126,8 @@ module DiscourseVideo
     end
 
     def verified_signature?(request)
+      return if SiteSetting.discourse_video_mux_webhook_signing_secret.blank?
+
       mux_signature = request.headers["Mux-Signature"]
 
       return if !mux_signature
