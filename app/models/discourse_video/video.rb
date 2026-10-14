@@ -56,16 +56,16 @@ end
 # Table name: discourse_video_videos
 #
 #  id                :bigint           not null, primary key
-#  video_id          :string           not null
-#  state             :string           not null
-#  secret_access_key :string
-#  asset_id          :string
-#  playback_id       :string
 #  callback_key      :string
+#  mp4_filename      :string
+#  secret_access_key :string
+#  state             :string           not null
 #  created_at        :datetime
 #  updated_at        :datetime
+#  asset_id          :string
+#  playback_id       :string
 #  user_id           :integer
-#  mp4_filename      :string
+#  video_id          :string           not null
 #
 # Indexes
 #
