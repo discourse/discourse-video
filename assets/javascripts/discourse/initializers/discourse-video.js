@@ -37,18 +37,17 @@ function initializeDiscourseVideo(api) {
 
         const hlsUrl = `https://stream.mux.com/${data.playback_id}.m3u8`;
 
-        // Let native HLS support handle it if possible
-        if (video.canPlayType("application/vnd.apple.mpegurl")) {
-          let hlsSource = document.createElement("source");
-          hlsSource.setAttribute("src", hlsUrl);
-          hlsSource.setAttribute("type", "application/x-mpegURL");
-          video.appendChild(hlsSource);
-        } else if (Hls.isSupported()) {
+        if (Hls.isSupported()) {
           // enableWorker: false because https://github.com/borisirota/webworkify-webpack/issues/45
           // and because it requires us to add 'worker-src: blob:' to our CSP
           let hls = new Hls({ enableWorker: false });
           hls.loadSource(hlsUrl);
           hls.attachMedia(video);
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          let hlsSource = document.createElement("source");
+          hlsSource.setAttribute("src", hlsUrl);
+          hlsSource.setAttribute("type", "application/x-mpegURL");
+          video.appendChild(hlsSource);
         }
       });
     });
