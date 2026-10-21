@@ -28,6 +28,8 @@ function initializeDiscourseVideo(api) {
         let video = document.createElement("video");
         video.className = "mux-video";
         video.controls = "controls";
+        video.poster = `https://image.mux.com/${data.playback_id}/thumbnail.jpg?time=1`;
+        video.setAttribute("playsinline", "");
         let placeholder = videoContainer.querySelector(".icon-container");
         if (placeholder) {
           videoContainer.replaceChild(video, placeholder);
