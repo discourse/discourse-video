@@ -1,50 +1,57 @@
-import { setupTest } from "ember-qunit";
 import { module, test } from "qunit";
 import DiscourseVideoUploadForm from "discourse/plugins/discourse-video/discourse/components/modal/discourse-video-upload-form";
 
-module("Unit | Component | discourse-video-upload-form", function (hooks) {
-  setupTest(hooks);
-
-  const isDurationAllowedFn = Object.getOwnPropertyDescriptor(
+function getter(name) {
+  return Object.getOwnPropertyDescriptor(
     DiscourseVideoUploadForm.prototype,
-    "isDurationAllowed"
+    name
   ).get;
+}
 
-  function testIsDurationAllowed(assert, params, expectedResult, message) {
-    const context = {
-      currentUser: { staff: params.isStaff || false },
-      videoDurationMinutes: params.duration,
-      maxVideoDurationMinutes: params.maxDuration || 5,
-    };
+module("Unit | Component | DiscourseVideoUploadForm", function () {
+  test("isDurationAllowed", function (assert) {
+    const isDurationAllowed = ({ staff = false, duration, limit = 5 }) =>
+      getter("isDurationAllowed").call({
+        currentUser: { staff },
+        videoDurationMinutes: duration,
+        maxVideoDurationMinutes: limit,
+      });
 
-    const result = isDurationAllowedFn.call(context);
-    assert.strictEqual(result, expectedResult, message);
-  }
-
-  test("isDurationAllowed returns false when duration exceeds limits", function (assert) {
-    testIsDurationAllowed(
-      assert,
-      { duration: 10, maxDuration: 5 },
-      false,
-      "Duration exceeding limits is not allowed"
+    assert.true(isDurationAllowed({ duration: 2 }), "allows shorter videos");
+    assert.false(
+      isDurationAllowed({ duration: 5 }),
+      "rejects videos at the limit"
+    );
+    assert.false(isDurationAllowed({ duration: 10 }), "rejects longer videos");
+    assert.true(
+      isDurationAllowed({ staff: true, duration: 10 }),
+      "lets staff exceed the limit"
+    );
+    assert.true(
+      isDurationAllowed({ duration: null, limit: 0 }),
+      "allows videos of unknown duration"
     );
   });
 
-  test("isDurationAllowed returns true when duration does not exceed limits", function (assert) {
-    testIsDurationAllowed(
-      assert,
-      { duration: 2, maxDuration: 5 },
-      true,
-      "Duration not exceeding limits is allowed"
-    );
-  });
+  test("maxVideoDurationMinutes", function (assert) {
+    const maxVideoDurationMinutes = (trustLevel) =>
+      getter("maxVideoDurationMinutes").call({
+        currentUser: { trust_level: trustLevel },
+        siteSettings: {
+          discourse_video_max_duration_minutes: 10,
+          discourse_video_max_duration_minutes_leaders: 60,
+        },
+      });
 
-  test("isDurationAllowed returns true for staff users regardless of duration", function (assert) {
-    testIsDurationAllowed(
-      assert,
-      { isStaff: true, duration: 10, maxDuration: 5 },
-      true,
-      "Staff users are allowed regardless of duration"
+    assert.strictEqual(
+      maxVideoDurationMinutes(2),
+      10,
+      "uses the default limit"
+    );
+    assert.strictEqual(
+      maxVideoDurationMinutes(4),
+      60,
+      "uses the leaders limit for trust level 4"
     );
   });
 });
