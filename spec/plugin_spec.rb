@@ -6,6 +6,12 @@ describe DiscourseVideo do
   before { enable_current_plugin }
 
   describe "post_process_cooked event" do
+    def published_video_changes(post)
+      MessageBus
+        .track_publish("/topic/#{post.topic_id}") { CookedPostProcessor.new(post).post_process }
+        .select { |message| message.data[:type] == :discourse_video_video_changed }
+    end
+
     it "tracks every video embedded in a post with a single lookup" do
       other_video = Fabricate(:video)
       post =
@@ -23,6 +29,15 @@ describe DiscourseVideo do
         video.video_info,
       )
       expect(queries.count { _1 =~ /FROM "?discourse_video_videos"?/ }).to eq(1)
+    end
+
+    it "publishes a change only when the post's video statuses change" do
+      post = Fabricate(:post, raw: "No video yet")
+      expect(published_video_changes(post)).to be_empty
+
+      post.update!(raw: "[video=#{video.video_id}]")
+      expect(published_video_changes(post).map { |message| message.data[:id] }).to eq([post.id])
+      expect(published_video_changes(post)).to be_empty
     end
   end
 end

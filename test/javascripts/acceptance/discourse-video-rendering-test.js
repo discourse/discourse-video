@@ -5,7 +5,10 @@ import loadScript from "discourse/lib/load-script";
 import { cloneJSON } from "discourse/lib/object";
 import topicFixtures from "discourse/tests/fixtures/topic";
 import pretender, { response } from "discourse/tests/helpers/create-pretender";
-import { acceptance } from "discourse/tests/helpers/qunit-helpers";
+import {
+  acceptance,
+  publishToMessageBus,
+} from "discourse/tests/helpers/qunit-helpers";
 import { i18n } from "discourse-i18n";
 
 const VIDEO_ID = "8kDeYZD5hHftgpWaTHTcjUuxt8s5qkQq";
@@ -17,6 +20,7 @@ const MANIFEST_URL = `https://stream.mux.com/${PLAYBACK_ID}.m3u8`;
 const POSTER_URL = `https://image.mux.com/${PLAYBACK_ID}/thumbnail.jpg?time=1&width=1280&height=1920`;
 const TOPIC_URL = "/t/internationalization-localization/280";
 const PLACEHOLDER = `<div class="icon-container"></div>`;
+const POST_ID = topicFixtures["/t/280/1.json"].post_stream.posts[0].id;
 
 function videoContainer(videoId, content = "") {
   return `<div class="discourse-video-container" data-video-id="${videoId}">${content}</div>`;
@@ -26,14 +30,34 @@ function downloadContainer(videoId) {
   return `<div class="discourse-download-video-container" data-download-video-id="${videoId}"></div>`;
 }
 
+function postJson(cooked, discourseVideo) {
+  return {
+    ...cloneJSON(topicFixtures["/t/280/1.json"].post_stream.posts[0]),
+    cooked,
+    discourse_video: discourseVideo,
+  };
+}
+
 function stubPost(cooked, discourseVideo) {
   pretender.get("/t/280.json", () => {
     const json = cloneJSON(topicFixtures["/t/280/1.json"]);
-    Object.assign(json.post_stream.posts[0], {
-      cooked,
-      discourse_video: discourseVideo,
-    });
+    json.post_stream.posts[0] = postJson(cooked, discourseVideo);
     return response(json);
+  });
+}
+
+function stubRefreshedPost(cooked, discourseVideo) {
+  pretender.get(`/posts/${POST_ID}`, () =>
+    response(postJson(cooked, discourseVideo))
+  );
+}
+
+function publishVideoChanged() {
+  return publishToMessageBus("/topic/280", {
+    type: "discourse_video_video_changed",
+    id: POST_ID,
+    post_number: 1,
+    updated_at: "2026-01-01T00:00:01.000Z",
   });
 }
 
@@ -132,7 +156,7 @@ acceptance("Discourse video | Rendering videos in posts", function (needs) {
     pretender.get("/discourse_video/playback_id/:id", ({ params }) =>
       response(
         params.id === "readyWithoutPlayback"
-          ? { playback_id: null, mp4_filename: null }
+          ? { playback_id: null, mp4_filename: "high.mp4" }
           : { playback_id: PLAYBACK_ID, mp4_filename: "high.mp4" }
       )
     );
@@ -145,6 +169,7 @@ acceptance("Discourse video | Rendering videos in posts", function (needs) {
         videoContainer("pendingVideo"),
         videoContainer("unknownVideo"),
         downloadContainer("pendingVideo"),
+        downloadContainer("readyWithoutPlayback"),
       ].join(""),
       [
         "erroredVideo:errored",
@@ -200,7 +225,9 @@ acceptance("Discourse video | Rendering videos in posts", function (needs) {
       .doesNotExist("leaves a video without a status untouched");
     assert
       .dom("#post_1 a.download-mux-video")
-      .doesNotExist("has no download link for a video that is not ready");
+      .doesNotExist(
+        "has no download link for a video that is not ready or has no playback id"
+      );
     assert.deepEqual(
       requestedUrls(PLAYBACK_PATH),
       [
@@ -211,25 +238,50 @@ acceptance("Discourse video | Rendering videos in posts", function (needs) {
     );
   });
 
-  test("renders one player per embed and one download link for a video embedded twice", async function (assert) {
-    stubPlayback({ mp4_filename: "high.mp4" });
-    stubPost(
-      `${videoContainer(VIDEO_ID)}${videoContainer(VIDEO_ID)}${downloadContainer(VIDEO_ID)}`,
-      [`${VIDEO_ID}:ready`, `${VIDEO_ID}:ready`]
-    );
+  test("shows videos becoming ready and keeps their players on later changes", async function (assert) {
+    await stubHlsSupport({ hlsJs: true });
+    const attachMedia = sinon.spy(window.Hls.prototype, "attachMedia");
+    const destroy = sinon.spy(window.Hls.prototype, "destroy");
+    const destroyedPlayers = () =>
+      attachMedia.thisValues.map((hls) => destroy.calledOn(hls));
+    const cooked = `${videoContainer(VIDEO_ID)}${videoContainer(VIDEO_ID)}${downloadContainer(VIDEO_ID)}`;
+    stubPost(cooked, [`${VIDEO_ID}:pending`, `${VIDEO_ID}:pending`]);
+    stubRefreshedPost(cooked, [`${VIDEO_ID}:ready`, `${VIDEO_ID}:ready`]);
 
     await visit(TOPIC_URL);
+    await publishVideoChanged();
+
+    assert
+      .dom("#post_1 .icon-container")
+      .doesNotExist("replaces the pending placeholders");
+    assert
+      .dom("#post_1 a.download-mux-video")
+      .doesNotExist("has no download link before the MP4 rendition is ready");
+    assert.deepEqual(
+      requestedUrls(PLAYBACK_PATH),
+      [PLAYBACK_URL],
+      "fetches the playback data once"
+    );
+
+    stubPlayback({ mp4_filename: "high.mp4" });
+    await publishVideoChanged();
+    await publishVideoChanged();
 
     for (const position of [1, 2]) {
       assert
         .dom(
           `#post_1 .discourse-video-container:nth-child(${position}) video.mux-video`
         )
-        .exists({ count: 1 }, `renders one player in embed ${position}`);
+        .exists({ count: 1 }, `shows one player in embed ${position}`);
     }
+    assert.deepEqual(
+      destroyedPlayers(),
+      [false, false],
+      "keeps the hls.js instances of the unchanged videos"
+    );
     assert
-      .dom("#post_1 .discourse-download-video-container a.download-mux-video")
-      .exists({ count: 1 }, "renders one download link")
+      .dom("#post_1 a.download-mux-video")
+      .exists({ count: 1 }, "shows one download link")
       .hasAttribute(
         "href",
         `https://stream.mux.com/${PLAYBACK_ID}/high.mp4?download=${PLAYBACK_ID}.mp4`,
@@ -239,6 +291,28 @@ acceptance("Discourse video | Rendering videos in posts", function (needs) {
         i18n("discourse_video.download_video"),
         "labels the download link"
       );
+
+    await visit("/");
+
+    assert.deepEqual(
+      destroyedPlayers(),
+      [true, true],
+      "destroys the hls.js instances once the post goes away"
+    );
+  });
+
+  test("renders the videos of a refreshed post once when its cooked HTML changes", async function (assert) {
+    stubPost(videoContainer(VIDEO_ID), [`${VIDEO_ID}:pending`]);
+    stubRefreshedPost(`<p>Edited</p>${videoContainer(VIDEO_ID)}`, [
+      `${VIDEO_ID}:ready`,
+    ]);
+
+    await visit(TOPIC_URL);
+    await publishVideoChanged();
+
+    assert
+      .dom("#post_1 video.mux-video")
+      .exists({ count: 1 }, "renders the ready video");
     assert.deepEqual(
       requestedUrls(PLAYBACK_PATH),
       [PLAYBACK_URL],

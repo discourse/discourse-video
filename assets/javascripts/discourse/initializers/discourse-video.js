@@ -7,6 +7,33 @@ import { i18n } from "discourse-i18n";
 import DiscourseVideoUploadForm from "../components/modal/discourse-video-upload-form";
 
 const HLS_SCRIPT_URL = "/plugins/discourse-video/javascripts/hls.min.js";
+const EMBEDS_SELECTOR = "div[data-video-id], div[data-download-video-id]";
+
+const renders = new WeakMap();
+const mounted = new WeakMap();
+
+// A render whose data arrives after a newer render started is dropped
+function startRender(container) {
+  const render = {};
+  renders.set(container, render);
+  return () => renders.get(container) === render;
+}
+
+function mount(container, content, playbackId) {
+  mounted.get(container)?.controller.abort();
+  const controller = new AbortController();
+  mounted.set(container, { controller, playbackId });
+  container.replaceChildren(content);
+  return controller.signal;
+}
+
+function stopRenders(elem) {
+  elem.querySelectorAll(EMBEDS_SELECTOR).forEach((container) => {
+    renders.delete(container);
+    mounted.get(container)?.controller.abort();
+    mounted.delete(container);
+  });
+}
 
 function initializeDiscourseVideo(api) {
   const siteSettings = api.container.lookup("service:site-settings");
@@ -17,59 +44,75 @@ function initializeDiscourseVideo(api) {
     return ajax(`/discourse_video/playback_id/${videoId}`);
   }
 
-  function mount(container, element) {
-    const placeholder = container.querySelector(".icon-container");
-    if (placeholder) {
-      placeholder.replaceWith(element);
-    } else {
-      container.append(element);
+  async function renderVideo(container, playback) {
+    const isLatestRender = startRender(container);
+
+    let data;
+    try {
+      [data] = await Promise.all([playback, loadScript(HLS_SCRIPT_URL)]);
+    } catch {
+      // A failed request leaves the embed as it is
+      return;
+    }
+
+    if (!isLatestRender()) {
+      return;
+    }
+
+    if (!data.playback_id) {
+      renderPlaceholder(container, "pending");
+      return;
+    }
+
+    // Keeps a playing video going when a re-render leaves it unchanged
+    if (mounted.get(container)?.playbackId === data.playback_id) {
+      return;
+    }
+
+    const video = document.createElement("video");
+    video.className = "mux-video";
+    video.controls = true;
+    // Bounding both sides keeps 1080p portrait videos from being upscaled
+    video.poster = `https://image.mux.com/${data.playback_id}/thumbnail.jpg?time=1&width=1280&height=1920`;
+    video.setAttribute("playsinline", "");
+    const signal = mount(container, video, data.playback_id);
+
+    const hlsUrl = `https://stream.mux.com/${data.playback_id}.m3u8`;
+
+    if (Hls.isSupported()) {
+      // enableWorker: false because https://github.com/borisirota/webworkify-webpack/issues/45
+      // and because it requires us to add 'worker-src: blob:' to our CSP
+      const hls = new Hls({ enableWorker: false });
+      hls.loadSource(hlsUrl);
+      hls.attachMedia(video);
+      signal.addEventListener("abort", () => hls.destroy());
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      const source = document.createElement("source");
+      source.src = hlsUrl;
+      source.type = "application/x-mpegURL";
+      video.append(source);
     }
   }
 
-  function renderVideo(container, playback) {
-    Promise.all([playback, loadScript(HLS_SCRIPT_URL)]).then(([data]) => {
-      if (!data.playback_id) {
-        renderPlaceholder(container, "pending");
-        return;
-      }
+  async function renderDownloadLink(container, playback) {
+    const isLatestRender = startRender(container);
 
-      const video = document.createElement("video");
-      video.className = "mux-video";
-      video.controls = true;
-      // Bounding both sides keeps 1080p portrait videos from being upscaled
-      video.poster = `https://image.mux.com/${data.playback_id}/thumbnail.jpg?time=1&width=1280&height=1920`;
-      video.setAttribute("playsinline", "");
-      mount(container, video);
+    let data;
+    try {
+      data = await playback;
+    } catch {
+      return;
+    }
 
-      const hlsUrl = `https://stream.mux.com/${data.playback_id}.m3u8`;
+    if (!isLatestRender() || !data.playback_id || !data.mp4_filename) {
+      return;
+    }
 
-      if (Hls.isSupported()) {
-        // enableWorker: false because https://github.com/borisirota/webworkify-webpack/issues/45
-        // and because it requires us to add 'worker-src: blob:' to our CSP
-        const hls = new Hls({ enableWorker: false });
-        hls.loadSource(hlsUrl);
-        hls.attachMedia(video);
-      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        const source = document.createElement("source");
-        source.src = hlsUrl;
-        source.type = "application/x-mpegURL";
-        video.append(source);
-      }
-    });
-  }
-
-  function renderDownloadLink(container, playback) {
-    playback.then((data) => {
-      if (!data.mp4_filename) {
-        return;
-      }
-
-      const link = document.createElement("a");
-      link.className = "download-mux-video";
-      link.href = `https://stream.mux.com/${data.playback_id}/${data.mp4_filename}?download=${data.playback_id}.mp4`;
-      link.textContent = i18n("discourse_video.download_video");
-      container.append(link);
-    });
+    const link = document.createElement("a");
+    link.className = "download-mux-video";
+    link.href = `https://stream.mux.com/${data.playback_id}/${data.mp4_filename}?download=${data.playback_id}.mp4`;
+    link.textContent = i18n("discourse_video.download_video");
+    container.replaceChildren(link);
   }
 
   const placeholders = {
@@ -84,6 +127,7 @@ function initializeDiscourseVideo(api) {
   };
 
   function renderPlaceholder(container, type) {
+    startRender(container);
     const { iconHtml, string } = placeholders[type];
     const placeholder = document.createElement("div");
     placeholder.className = "icon-container";
@@ -144,6 +188,7 @@ function initializeDiscourseVideo(api) {
         return;
       }
       renderVideos(elem, post);
+      return () => stopRenders(elem);
     },
     { id: "discourse-video" }
   );
@@ -157,24 +202,30 @@ function initializeDiscourseVideo(api) {
     });
   });
 
-  if (user?.can_upload_video) {
-    api.registerCustomPostMessageCallback(
-      "discourse_video_video_changed",
-      (topicController, message) => {
-        let stream = topicController.get("model.postStream");
-        const post = stream.findLoadedPost(message.id);
+  api.registerCustomPostMessageCallback(
+    "discourse_video_video_changed",
+    async (topicController, message) => {
+      const { postStream } = topicController.model;
+      const { cooked } = postStream.findLoadedPost(message.id) ?? {};
 
-        stream.triggerChangedPost(message.id).then(() => {
-          const elements = document.querySelectorAll("article[data-post-id]");
-          elements.forEach(function (elem) {
-            if (elem.getAttribute("data-post-id") === message.id.toString()) {
-              renderVideos(elem, post);
-            }
-          });
-        });
+      try {
+        await postStream.triggerChangedPost(message.id, message.updated_at);
+      } catch {
+        return;
       }
-    );
 
+      // Core only re-decorates a refreshed post when its cooked HTML changes
+      const post = postStream.findLoadedPost(message.id);
+      const article = document.querySelector(
+        `article[data-post-id="${message.id}"]`
+      );
+      if (article && post?.cooked === cooked) {
+        renderVideos(article, post);
+      }
+    }
+  );
+
+  if (user?.can_upload_video) {
     api.addComposerUploadHandler(
       siteSettings.discourse_video_file_extensions.split("|"),
       ([file]) => {

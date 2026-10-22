@@ -89,6 +89,7 @@ module DiscourseVideo
           names = data["data"]["static_renditions"]["files"].map { _1["name"] }
           video.mp4_filename = names.include?("high.mp4") ? "high.mp4" : "low.mp4"
           video.save!
+          video.publish_change_to_clients!
         end
       end
 
