@@ -2,7 +2,7 @@
 
 Fabricator(:video, class_name: "DiscourseVideo::Video") do
   user
-  video_id 1
+  video_id { sequence(:video_id) { |i| "video#{i}" } }
   state "waiting"
 end
 

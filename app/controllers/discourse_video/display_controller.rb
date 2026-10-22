@@ -5,14 +5,8 @@ module DiscourseVideo
     requires_plugin DiscourseVideo::PLUGIN_NAME
 
     def get_playback_id
-      video_id = params.require(:video_id)
-      video_info =
-        DiscourseVideo::Video
-          .where(video_id: video_id)
-          .as_json(only: %i[playback_id mp4_filename])
-          .first
-
-      render json: video_info
+      video = DiscourseVideo::Video.find_by(video_id: params.require(:video_id))
+      render json: video&.slice(:playback_id, :mp4_filename)
     end
   end
 end

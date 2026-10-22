@@ -10,7 +10,7 @@ describe Guardian do
   let(:adminGuardian) { Guardian.new(admin) }
   let(:moderatorGuardian) { Guardian.new(moderator) }
 
-  before { SiteSetting.discourse_video_enabled = true }
+  before { enable_current_plugin }
 
   describe "can_upload_video?" do
     it "returns true for users having specified trust level" do

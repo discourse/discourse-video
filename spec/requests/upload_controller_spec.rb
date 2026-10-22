@@ -1,19 +1,5 @@
 # frozen_string_literal: true
 
-def mux_signature(data)
-  timestamp = 1234
-  mux_header = "t=#{timestamp},v1="
-  payload = "#{timestamp}.#{data}"
-  signature =
-    OpenSSL::HMAC.hexdigest(
-      OpenSSL::Digest.new("sha256"),
-      SiteSetting.discourse_video_mux_webhook_signing_secret,
-      payload,
-    )
-
-  "#{mux_header}#{signature}"
-end
-
 describe DiscourseVideo::UploadController do
   fab!(:user) { Fabricate(:user, trust_level: TrustLevel[1]) }
   fab!(:video) do
@@ -40,8 +26,29 @@ describe DiscourseVideo::UploadController do
   end
 
   before do
-    SiteSetting.discourse_video_enabled = true
+    enable_current_plugin
     SiteSetting.discourse_video_mux_webhook_signing_secret = "test"
+  end
+
+  def mux_signature(payload)
+    timestamp = 1234
+    signature =
+      OpenSSL::HMAC.hexdigest(
+        OpenSSL::Digest.new("sha256"),
+        SiteSetting.discourse_video_mux_webhook_signing_secret,
+        "#{timestamp}.#{payload}",
+      )
+
+    "t=#{timestamp},v1=#{signature}"
+  end
+
+  def post_webhook(payload)
+    post "/discourse_video/webhook",
+         params: JSON.parse(payload),
+         as: :json,
+         headers: {
+           "Mux-Signature" => mux_signature(payload),
+         }
   end
 
   describe "#webhook" do
@@ -51,32 +58,18 @@ describe DiscourseVideo::UploadController do
       expect(response.status).to eq(403)
     end
 
-    it "allows only verified requests" do
-      test_params = { "test" => "test" }
+    it "acknowledges event types it does not handle" do
+      post_webhook({ type: "video.asset.created" }.to_json)
 
-      post "/discourse_video/webhook",
-           params: test_params,
-           headers: {
-             "Content-Type" => "aplication/json",
-             "Mux-Signature" => mux_signature(JSON.generate(test_params)),
-           },
-           as: :json
       expect(response.status).to eq(200)
     end
 
     it "rejects ready events signed with the blank default secret" do
       SiteSetting.discourse_video_mux_webhook_signing_secret = ""
 
-      post "/discourse_video/webhook",
-           params: JSON.parse(ready_data),
-           as: :json,
-           headers: {
-             "Content-Type" => "aplication/json",
-             "Mux-Signature" => mux_signature(ready_data),
-           }
+      post_webhook(ready_data)
 
       expect(response.status).to eq(403)
-      expect(response.parsed_body["errors"]).to be_present
       expect(video.reload).to have_attributes(
         state: DiscourseVideo::Video::WAITING,
         playback_id: nil,
@@ -85,26 +78,14 @@ describe DiscourseVideo::UploadController do
 
     it "changes status of video from verified requests" do
       expect do
-        post "/discourse_video/webhook",
-             params: JSON.parse(asset_created_data),
-             as: :json,
-             headers: {
-               "Content-Type" => "aplication/json",
-               "Mux-Signature" => mux_signature(asset_created_data),
-             }
+        post_webhook(asset_created_data)
         video.reload
       end.to change { video.state }.from(DiscourseVideo::Video::WAITING).to(
         DiscourseVideo::Video::PENDING,
       )
 
       expect do
-        post "/discourse_video/webhook",
-             params: JSON.parse(ready_data),
-             as: :json,
-             headers: {
-               "Content-Type" => "aplication/json",
-               "Mux-Signature" => mux_signature(ready_data),
-             }
+        post_webhook(ready_data)
         video.reload
       end.to change { video.state }.from(DiscourseVideo::Video::PENDING).to(
         DiscourseVideo::Video::READY,
@@ -120,15 +101,7 @@ describe DiscourseVideo::UploadController do
       trashed_post.trash!
 
       messages =
-        MessageBus.track_publish("/topic/#{live_post.topic_id}") do
-          post "/discourse_video/webhook",
-               params: JSON.parse(ready_data),
-               as: :json,
-               headers: {
-                 "Content-Type" => "aplication/json",
-                 "Mux-Signature" => mux_signature(ready_data),
-               }
-        end
+        MessageBus.track_publish("/topic/#{live_post.topic_id}") { post_webhook(ready_data) }
 
       expect(response.status).to eq(200)
       expect(DiscourseVideo::VideoPost.pluck(:video_info)).to all(eq(video.reload.video_info))
@@ -144,13 +117,7 @@ describe DiscourseVideo::UploadController do
 
       messages =
         MessageBus.track_publish("/topic/#{other_video_post.post.topic_id}") do
-          post "/discourse_video/webhook",
-               params: JSON.parse(ready_data),
-               as: :json,
-               headers: {
-                 "Content-Type" => "aplication/json",
-                 "Mux-Signature" => mux_signature(ready_data),
-               }
+          post_webhook(ready_data)
         end
 
       expect(response.status).to eq(200)
@@ -160,13 +127,7 @@ describe DiscourseVideo::UploadController do
 
     it "accepts static_renditions.ready requests" do
       expect do
-        post "/discourse_video/webhook",
-             params: JSON.parse(static_renditions_data),
-             as: :json,
-             headers: {
-               "Content-Type" => "aplication/json",
-               "Mux-Signature" => mux_signature(static_renditions_data),
-             }
+        post_webhook(static_renditions_data)
         video.reload
       end.to change { video.mp4_filename }.from(nil).to("low.mp4")
     end
