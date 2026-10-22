@@ -22,6 +22,7 @@ after_initialize do
   reloadable_patch { |plugin| Post.prepend(DiscourseVideo::PostExtension) }
 
   TopicView.on_preload do |topic_view|
+    next if !SiteSetting.discourse_video_enabled
     topic_view.instance_variable_set(:@posts, topic_view.posts.includes(:discourse_video))
   end
 
@@ -31,30 +32,19 @@ after_initialize do
     @user.trust_level >= SiteSetting.discourse_video_min_trust_level
   end
 
-  add_to_serializer(:post, :discourse_video, respect_plugin_enabled: false) do
-    Array(DiscourseVideo::VideoPost.where(post_id: object.id).pluck(:video_info))
-  end
+  add_to_serializer(:post, :discourse_video) { object.discourse_video.map(&:video_info) }
 
-  add_to_serializer(:current_user, :can_upload_video) { Guardian.new(scope.user).can_upload_video? }
+  add_to_serializer(:current_user, :can_upload_video) { scope.can_upload_video? }
 
   on(:post_process_cooked) do |doc, post|
-    video_ids = []
-
-    doc
-      .css("div/@data-video-id")
-      .each do |media|
-        if video = DiscourseVideo::Video.find_by_video_id(media.value)
-          video_ids << video.video_info
-        end
-      end
+    video_infos = DiscourseVideo::Video.embedded_video_infos(doc)
 
     DiscourseVideo::VideoPost.where(post_id: post.id).delete_all
-    if video_ids.size > 0
-      params = video_ids.map { |val| { post_id: post.id, video_info: val } }
-      DiscourseVideo::VideoPost.create!(params)
-    end
+    DiscourseVideo::VideoPost.create!(
+      video_infos.map { |video_info| { post_id: post.id, video_info: } },
+    )
 
-    post.publish_change_to_clients! :discourse_video_video_changed
+    post.publish_change_to_clients!(:discourse_video_video_changed, skip_topic_stats: true)
   end
 
   on(:chat_message_processed) do |doc, message|
