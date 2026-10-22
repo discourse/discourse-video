@@ -125,28 +125,27 @@ function initializeDiscourseVideo(api) {
       return;
     }
 
+    const statuses = new Map(
+      post.discourse_video.map((videoInfo) => videoInfo.split(":"))
+    );
+
     elem.querySelectorAll("div[data-video-id]").forEach(function (container) {
       const videoId = container.getAttribute("data-video-id").toString();
       if (!videoId) {
         return;
       }
 
-      post.discourse_video.forEach((video_string) => {
-        if (video_string) {
-          const status = video_string.replace(`${videoId}:`, "");
-          if (status === "ready") {
-            renderVideo(container, videoId);
-          } else if (status === "errored") {
-            renderPlaceholder(container, "errored");
-          } else if (status === "waiting") {
-            renderPlaceholder(container, "waiting");
-          } else {
-            renderPlaceholder(container, "pending");
-          }
-        } else {
-          renderPlaceholder(container, "waiting");
-        }
-      });
+      // Embeds without a status (post not processed yet, unknown video id) are left as is
+      const status = statuses.get(videoId);
+      if (status === "ready") {
+        renderVideo(container, videoId);
+      } else if (status === "errored") {
+        renderPlaceholder(container, "errored");
+      } else if (status === "waiting") {
+        renderPlaceholder(container, "waiting");
+      } else if (status) {
+        renderPlaceholder(container, "pending");
+      }
     });
 
     elem
@@ -159,14 +158,9 @@ function initializeDiscourseVideo(api) {
           return;
         }
 
-        post.discourse_video.forEach((video_string) => {
-          if (video_string) {
-            const status = video_string.replace(`${videoId}:`, "");
-            if (status === "ready") {
-              renderVideoDownloadLink(container, videoId);
-            }
-          }
-        });
+        if (statuses.get(videoId) === "ready") {
+          renderVideoDownloadLink(container, videoId);
+        }
       });
   }
 
