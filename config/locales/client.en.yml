@@ -6,12 +6,12 @@ en:
           discourse_video: "Discourse Video"
   js:
     discourse_video:
-      modal_title: "Upload Video"
+      modal_title: "Upload video"
       modal_subtitle: "Select a video to upload and embed"
-      select_file: "Select File"
-      download_video: "Download Video"
+      select_file: "Select file"
+      download_video: "Download video"
       file: "File"
-      upload_toolbar_title: Upload Video
+      upload_toolbar_title: "Upload video"
       upload_progress:
         error: "An error has occurred"
         preparing: "Preparing to upload"
@@ -20,8 +20,8 @@ en:
         finishing: "Finishing upload"
         complete: "Upload complete {{info}}"
       state:
-        errored: "Video Injest Error"
-        pending: "Processing Video"
+        errored: "Video ingest error"
+        pending: "Processing video"
       post:
         errors:
           upload_not_authorized: "Sorry, the file you are trying to upload is not authorized (authorized video extensions: %{authorized_extensions})."

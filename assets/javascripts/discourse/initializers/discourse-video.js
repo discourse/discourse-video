@@ -139,12 +139,7 @@ function initializeDiscourseVideo(api) {
       const post = helper?.getModel?.();
       if (!post) {
         elem.querySelectorAll("div[data-video-id]").forEach((container) => {
-          container.innerHTML = `
-            <p>
-              <div class="onebox-placeholder-container">
-                <span class="placeholder-icon video"></span>
-              </div>
-            </p>`;
+          container.innerHTML = `<div class="onebox-placeholder-container"><span class="placeholder-icon video"></span></div>`;
         });
         return;
       }
