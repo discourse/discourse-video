@@ -52,7 +52,8 @@ module DiscourseVideo
       # Notifications could arrive out of order so be sure they don't overwrite
       #  state they shouldn't.
 
-      if data["type"] == "video.upload.asset_created"
+      case data["type"]
+      when "video.upload.asset_created"
         upload_id = data["object"]["id"]
         video = DiscourseVideo::Video.find_by_video_id(upload_id)
         if video
@@ -62,9 +63,7 @@ module DiscourseVideo
           end
           video.save!
         end
-      end
-
-      if data["type"] == "video.asset.ready"
+      when "video.asset.ready"
         asset_id = data["object"]["id"]
         upload_id = data["data"]["upload_id"]
         video = DiscourseVideo::Video.find_by_video_id(upload_id)
@@ -82,23 +81,13 @@ module DiscourseVideo
             video.publish_chat_message_change_to_clients!
           end
         end
-      end
-
-      if data["type"] == "video.asset.static_renditions.ready"
+      when "video.asset.static_renditions.ready"
         upload_id = data["data"]["upload_id"]
         video = DiscourseVideo::Video.find_by_video_id(upload_id)
-        filenames = []
 
         if video
-          files = data["data"]["static_renditions"]["files"]
-          files.each { |f| filenames << f["name"] }
-
-          if filenames.include?("high.mp4")
-            video.mp4_filename = "high.mp4"
-          else
-            video.mp4_filename = "low.mp4"
-          end
-
+          names = data["data"]["static_renditions"]["files"].map { _1["name"] }
+          video.mp4_filename = names.include?("high.mp4") ? "high.mp4" : "low.mp4"
           video.save!
         end
       end

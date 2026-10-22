@@ -26,7 +26,7 @@ after_initialize do
   end
 
   add_to_class(:guardian, :can_upload_video?) do
-    return true if @user.admin || @user.moderator
+    return true if @user.staff?
 
     @user.trust_level >= SiteSetting.discourse_video_min_trust_level
   end
