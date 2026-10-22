@@ -125,6 +125,25 @@ describe DiscourseVideo::UploadController do
       expect(messages).to be_empty
     end
 
+    it "refreshes the live chat messages embedding a ready video" do
+      SiteSetting.chat_enabled = true
+      embed = "[video=#{video.video_id}]"
+
+      chat_message, trashed_chat_message, message_in_trashed_channel =
+        Array.new(3) { Fabricate(:chat_message, message: embed, use_service: true) }
+      trashed_chat_message.trash!
+      message_in_trashed_channel.chat_channel.trash!
+
+      messages = MessageBus.track_publish { post_webhook(ready_data) }
+
+      expect(response.status).to eq(200)
+      expect(
+        messages
+          .select { |message| message.data["type"] == "refresh" }
+          .map { |message| [message.channel, message.data.dig("chat_message", "id")] },
+      ).to eq([["/chat/#{chat_message.chat_channel_id}", chat_message.id]])
+    end
+
     it "stores the MP4 filename and publishes a change to the posts embedding the video" do
       video_post = Fabricate(:video_post, video_info: video.video_info)
 
@@ -137,6 +156,37 @@ describe DiscourseVideo::UploadController do
       expect(messages.map { |message| [message.data[:type], message.data[:id]] }).to eq(
         [[:discourse_video_video_changed, video_post.post_id]],
       )
+    end
+
+    it "stores the MP4 filename and refreshes the chat messages embedding the video" do
+      SiteSetting.chat_enabled = true
+      chat_message =
+        Fabricate(:chat_message, message: "[video=#{video.video_id}]", use_service: true)
+
+      messages =
+        MessageBus.track_publish("/chat/#{chat_message.chat_channel_id}") do
+          post_webhook(static_renditions_data)
+        end
+
+      expect(video.reload.mp4_filename).to eq("low.mp4")
+      expect(
+        messages.map { |message| [message.data["type"], message.data.dig("chat_message", "id")] },
+      ).to eq([["refresh", chat_message.id]])
+    end
+
+    it "leaves chat messages alone while chat is disabled" do
+      SiteSetting.chat_enabled = true
+      chat_message =
+        Fabricate(:chat_message, message: "[video=#{video.video_id}]", use_service: true)
+      SiteSetting.chat_enabled = false
+
+      messages =
+        MessageBus.track_publish("/chat/#{chat_message.chat_channel_id}") do
+          post_webhook(ready_data)
+        end
+
+      expect(response.status).to eq(200)
+      expect(messages).to be_empty
     end
   end
 end

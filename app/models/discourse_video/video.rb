@@ -42,19 +42,22 @@ module DiscourseVideo
         end
     end
 
+    def publish_embed_changes!
+      publish_change_to_clients!
+      publish_chat_message_change_to_clients! if SiteSetting.chat_enabled
+    end
+
     def video_chat_messages
       rows_for_video(DiscourseVideo::VideoChatMessage)
     end
 
-    def update_video_chat_message_fields!
-      video_chat_messages.update_all(video_info: video_info)
-    end
-
     def publish_chat_message_change_to_clients!
-      ChatMessage
-        .find(video_chat_messages.pluck(:message_id))
+      Chat::Message
+        .includes(:chat_channel)
+        .where(id: video_chat_messages.pluck(:message_id))
         .each do |chat_message|
-          ChatPublisher.publish_refresh!(chat_message.chat_channel, chat_message)
+          next if !chat_message.chat_channel
+          Chat::Publisher.publish_refresh!(chat_message.chat_channel, chat_message)
         end
     end
 

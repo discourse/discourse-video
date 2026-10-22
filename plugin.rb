@@ -52,22 +52,13 @@ after_initialize do
   end
 
   on(:chat_message_processed) do |doc, message|
-    video_ids = []
-
-    doc
-      .css("div/@data-video-id")
-      .each do |media|
-        if video = DiscourseVideo::Video.find_by_video_id(media.value)
-          video_ids << video.video_info
-        end
-      end
+    video_infos = DiscourseVideo::Video.embedded_video_infos(doc)
 
     DiscourseVideo::VideoChatMessage.where(message_id: message.id).delete_all
-    if video_ids.size > 0
-      params = video_ids.map { |val| { message_id: message.id, video_info: val } }
-      DiscourseVideo::VideoChatMessage.create!(params)
-    end
+    DiscourseVideo::VideoChatMessage.create!(
+      video_infos.map { |video_info| { message_id: message.id, video_info: } },
+    )
   end
 
-  discourse_chat&.enable_markdown_feature("discourse-video") if respond_to?(:discourse_chat)
+  chat.enable_markdown_feature("discourse-video") if respond_to?(:chat)
 end
