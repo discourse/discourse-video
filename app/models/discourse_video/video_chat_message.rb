@@ -19,3 +19,7 @@ end
 #  updated_at :datetime
 #  message_id :integer          not null
 #
+# Indexes
+#
+#  index_discourse_video_video_chat_messages_on_message_id  (message_id)
+#

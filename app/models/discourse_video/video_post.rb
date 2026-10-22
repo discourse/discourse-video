@@ -16,3 +16,7 @@ end
 #  updated_at :datetime
 #  post_id    :integer          not null
 #
+# Indexes
+#
+#  index_discourse_video_video_posts_on_post_id  (post_id)
+#

@@ -15,6 +15,12 @@ module DiscourseVideo
                 message: "%{value} is not a valid state",
               }
 
+    def self.embedded_video_infos(doc)
+      video_ids = doc.css("div/@data-video-id").map(&:value)
+      videos = where(video_id: video_ids).index_by(&:video_id)
+      video_ids.filter_map { |video_id| videos[video_id]&.video_info }
+    end
+
     def video_posts
       rows_for_video(DiscourseVideo::VideoPost)
     end
@@ -29,8 +35,11 @@ module DiscourseVideo
 
     def publish_change_to_clients!
       Post
+        .includes(topic: :category)
         .where(id: video_posts.select(:post_id))
-        .each { |post| post.publish_change_to_clients! :discourse_video_video_changed }
+        .each do |post|
+          post.publish_change_to_clients!(:discourse_video_video_changed, skip_topic_stats: true)
+        end
     end
 
     def video_chat_messages
