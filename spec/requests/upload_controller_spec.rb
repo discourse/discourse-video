@@ -125,11 +125,18 @@ describe DiscourseVideo::UploadController do
       expect(messages).to be_empty
     end
 
-    it "accepts static_renditions.ready requests" do
-      expect do
-        post_webhook(static_renditions_data)
-        video.reload
-      end.to change { video.mp4_filename }.from(nil).to("low.mp4")
+    it "stores the MP4 filename and publishes a change to the posts embedding the video" do
+      video_post = Fabricate(:video_post, video_info: video.video_info)
+
+      messages =
+        MessageBus.track_publish("/topic/#{video_post.post.topic_id}") do
+          post_webhook(static_renditions_data)
+        end
+
+      expect(video.reload.mp4_filename).to eq("low.mp4")
+      expect(messages.map { |message| [message.data[:type], message.data[:id]] }).to eq(
+        [[:discourse_video_video_changed, video_post.post_id]],
+      )
     end
   end
 end

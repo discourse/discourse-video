@@ -39,7 +39,11 @@ after_initialize do
   on(:post_process_cooked) do |doc, post|
     video_infos = DiscourseVideo::Video.embedded_video_infos(doc)
 
-    DiscourseVideo::VideoPost.where(post_id: post.id).delete_all
+    video_posts = DiscourseVideo::VideoPost.where(post_id: post.id)
+    # Every viewer of the topic refetches the post on a change
+    next if video_posts.pluck(:video_info).sort == video_infos.sort
+
+    video_posts.delete_all
     DiscourseVideo::VideoPost.create!(
       video_infos.map { |video_info| { post_id: post.id, video_info: } },
     )
