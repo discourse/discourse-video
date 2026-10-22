@@ -28,6 +28,9 @@ function initializeDiscourseVideo(api) {
         let video = document.createElement("video");
         video.className = "mux-video";
         video.controls = "controls";
+        // Bounding both sides keeps 1080p portrait videos from being upscaled
+        video.poster = `https://image.mux.com/${data.playback_id}/thumbnail.jpg?time=1&width=1280&height=1920`;
+        video.setAttribute("playsinline", "");
         let placeholder = videoContainer.querySelector(".icon-container");
         if (placeholder) {
           videoContainer.replaceChild(video, placeholder);
