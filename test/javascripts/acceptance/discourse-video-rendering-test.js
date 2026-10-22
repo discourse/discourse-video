@@ -91,9 +91,10 @@ acceptance("Discourse video | Rendering videos in posts", function (needs) {
   });
   needs.hooks.beforeEach(() => stubPlayback());
 
-  test("renders a ready video with hls.js even when native HLS is available", async function (assert) {
+  test("renders a ready video with hls.js over native HLS and loads it on first play", async function (assert) {
     await stubHlsSupport({ hlsJs: true });
     const attachMedia = sinon.spy(window.Hls.prototype, "attachMedia");
+    const startLoad = sinon.spy(window.Hls.prototype, "startLoad");
     stubPost(
       `${videoContainer(VIDEO_ID, PLACEHOLDER)}${downloadContainer(VIDEO_ID)}`,
       [`${VIDEO_ID}:ready`]
@@ -128,6 +129,29 @@ acceptance("Discourse video | Rendering videos in posts", function (needs) {
     assert
       .dom("#post_1 a.download-mux-video")
       .doesNotExist("has no download link without an MP4 rendition");
+
+    const hls = attachMedia.firstCall.thisValue;
+    assert.false(
+      hls.config.autoStartLoad,
+      "defers loading levels and fragments"
+    );
+    assert.false(
+      hls.capLevelToPlayerSize,
+      "does not cap the quality before playing"
+    );
+
+    const video = find("#post_1 video.mux-video");
+    video.dispatchEvent(new Event("play"));
+    video.dispatchEvent(new Event("play"));
+    assert.strictEqual(
+      startLoad.callCount,
+      1,
+      "starts loading on the first play only"
+    );
+    assert.true(
+      hls.capLevelToPlayerSize,
+      "caps the quality to the player size once playing"
+    );
   });
 
   test("falls back to native HLS playback when hls.js is not supported", async function (assert) {
