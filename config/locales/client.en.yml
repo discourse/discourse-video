@@ -21,7 +21,6 @@ en:
         complete: "Upload complete {{info}}"
       state:
         errored: "Video Injest Error"
-        unknown: "Unknown Video"
         pending: "Processing Video"
       post:
         errors:
