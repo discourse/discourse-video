@@ -82,9 +82,22 @@ function initializeDiscourseVideo(api) {
     if (Hls.isSupported()) {
       // enableWorker: false because https://github.com/borisirota/webworkify-webpack/issues/45
       // and because it requires us to add 'worker-src: blob:' to our CSP
-      const hls = new Hls({ enableWorker: false });
+      const hls = new Hls({
+        enableWorker: false,
+        // The poster is the preview, so only fetch the master playlist until the first play
+        autoStartLoad: false,
+      });
       hls.loadSource(hlsUrl);
       hls.attachMedia(video);
+      video.addEventListener(
+        "play",
+        () => {
+          // Capping polls the player size every second, so only start it once playing
+          hls.capLevelToPlayerSize = true;
+          hls.startLoad();
+        },
+        { once: true, signal }
+      );
       signal.addEventListener("abort", () => hls.destroy());
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       const source = document.createElement("source");
