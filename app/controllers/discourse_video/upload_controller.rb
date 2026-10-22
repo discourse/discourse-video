@@ -74,12 +74,7 @@ module DiscourseVideo
           video.save!
 
           video.update_video_post_fields!
-          video.publish_change_to_clients!
-
-          if respond_to?(:discourse_chat)
-            video.update_video_chat_message_fields!
-            video.publish_chat_message_change_to_clients!
-          end
+          video.publish_embed_changes!
         end
       when "video.asset.static_renditions.ready"
         upload_id = data["data"]["upload_id"]
@@ -89,7 +84,7 @@ module DiscourseVideo
           names = data["data"]["static_renditions"]["files"].map { _1["name"] }
           video.mp4_filename = names.include?("high.mp4") ? "high.mp4" : "low.mp4"
           video.save!
-          video.publish_change_to_clients!
+          video.publish_embed_changes!
         end
       end
 

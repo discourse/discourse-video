@@ -1,11 +1,7 @@
 import { withPluginApi } from "discourse/lib/plugin-api";
+import DiscourseVideoChatVideos from "../components/discourse-video-chat-videos";
 import DiscourseVideoUploadForm from "../components/modal/discourse-video-upload-form";
-import {
-  fetchPlayback,
-  renderVideo,
-  renderVideos,
-  stopRenders,
-} from "../lib/render-videos";
+import { renderPostVideos, stopRenders } from "../lib/render-videos";
 
 function initializeDiscourseVideo(api) {
   const siteSettings = api.container.lookup("service:site-settings");
@@ -21,19 +17,20 @@ function initializeDiscourseVideo(api) {
         });
         return;
       }
-      renderVideos(elem, post);
+      renderPostVideos(elem, post);
       return () => stopRenders(elem);
     },
     { id: "discourse-video" }
   );
 
-  api.decorateChatMessage?.((elem) => {
-    elem.querySelectorAll("div[data-video-id]").forEach((container) => {
-      const { videoId } = container.dataset;
-      if (videoId) {
-        renderVideo(container, fetchPlayback(videoId));
-      }
-    });
+  // Older cores don't pass the message, so their chat videos only update on reload
+  api.decorateChatMessage?.((elem, helper, chatMessage) => {
+    if (elem.querySelector("div[data-video-id], div[data-download-video-id]")) {
+      helper.renderGlimmer(elem, DiscourseVideoChatVideos, {
+        element: elem,
+        message: chatMessage,
+      });
+    }
   });
 
   api.registerCustomPostMessageCallback(
@@ -54,7 +51,7 @@ function initializeDiscourseVideo(api) {
         `article[data-post-id="${message.id}"]`
       );
       if (article && post?.cooked === cooked) {
-        renderVideos(article, post);
+        renderPostVideos(article, post);
       }
     }
   );
@@ -83,10 +80,14 @@ function initializeDiscourseVideo(api) {
       label: "discourse_video.upload_toolbar_title",
       position: "dropdown",
       action() {
+        // The user can switch to another composer before the upload completes
+        const { textarea } = this.composer;
         modal.show(DiscourseVideoUploadForm, {
           model: {
-            afterUploadComplete: (videoTag) =>
-              this.addText(this.getSelected(), videoTag),
+            afterUploadComplete: (videoTag) => {
+              textarea.addText(textarea.getSelected(), videoTag);
+              textarea.focus();
+            },
           },
         });
       },

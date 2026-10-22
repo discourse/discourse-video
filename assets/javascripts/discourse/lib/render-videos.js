@@ -25,52 +25,30 @@ function mount(container, content, playbackId) {
   return controller.signal;
 }
 
-export function stopRenders(elem) {
-  elem.querySelectorAll(EMBEDS_SELECTOR).forEach((container) => {
-    renders.delete(container);
-    mounted.get(container)?.controller.abort();
-    mounted.delete(container);
-  });
+function placeholder(type) {
+  const iconHtml =
+    type === "errored"
+      ? iconHTML("triangle-exclamation")
+      : "<div class='spinner'></div>";
+  const element = document.createElement("div");
+  element.className = "icon-container";
+  element.innerHTML = `<div class="discourse-video-message"><div class="video-state-icon">${iconHtml}</div><div class="video-state"></div></div>`;
+  element.querySelector(".video-state").textContent = i18n(
+    `discourse_video.state.${type}`
+  );
+  return element;
 }
 
-export function fetchPlayback(videoId) {
-  return ajax(`/discourse_video/playback_id/${videoId}`);
-}
-
-export async function renderVideo(container, playback) {
-  const isLatestRender = startRender(container);
-
-  let data;
-  try {
-    [data] = await Promise.all([playback, loadScript(HLS_SCRIPT_URL)]);
-  } catch {
-    // A failed request leaves the embed as it is
-    return;
-  }
-
-  if (!isLatestRender()) {
-    return;
-  }
-
-  if (!data.playback_id) {
-    renderPlaceholder(container, "pending");
-    return;
-  }
-
-  // Keeps a playing video going when a re-render leaves it unchanged
-  if (mounted.get(container)?.playbackId === data.playback_id) {
-    return;
-  }
-
+function mountPlayer(container, playbackId) {
   const video = document.createElement("video");
   video.className = "mux-video";
   video.controls = true;
   // Bounding both sides keeps 1080p portrait videos from being upscaled
-  video.poster = `https://image.mux.com/${data.playback_id}/thumbnail.jpg?time=1&width=1280&height=1920`;
+  video.poster = `https://image.mux.com/${playbackId}/thumbnail.jpg?time=1&width=1280&height=1920`;
   video.setAttribute("playsinline", "");
-  const signal = mount(container, video, data.playback_id);
+  const signal = mount(container, video, playbackId);
 
-  const hlsUrl = `https://stream.mux.com/${data.playback_id}.m3u8`;
+  const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
 
   if (Hls.isSupported()) {
     // enableWorker: false because https://github.com/borisirota/webworkify-webpack/issues/45
@@ -100,17 +78,49 @@ export async function renderVideo(container, playback) {
   }
 }
 
-async function renderDownloadLink(container, playback) {
+async function renderVideo(container, status, playback) {
+  const isLatestRender = startRender(container);
+
+  let state, data;
+  try {
+    state = await status;
+    if (state === "ready") {
+      [data] = await Promise.all([playback(), loadScript(HLS_SCRIPT_URL)]);
+    }
+  } catch {
+    // A failed request leaves the embed as it is
+    return;
+  }
+
+  // Embeds without a status (unprocessed post, unknown video id) are left as is
+  if (!isLatestRender() || !state) {
+    return;
+  }
+
+  if (state === "ready" && data?.playback_id) {
+    // Keeps a playing video going when a re-render leaves it unchanged
+    if (mounted.get(container)?.playbackId !== data.playback_id) {
+      mountPlayer(container, data.playback_id);
+    }
+  } else {
+    mount(container, placeholder(state === "errored" ? "errored" : "pending"));
+  }
+}
+
+async function renderDownloadLink(container, status, playback) {
   const isLatestRender = startRender(container);
 
   let data;
   try {
-    data = await playback;
+    if ((await status) !== "ready") {
+      return;
+    }
+    data = await playback();
   } catch {
     return;
   }
 
-  if (!isLatestRender() || !data.playback_id || !data.mp4_filename) {
+  if (!isLatestRender() || !data?.playback_id || !data.mp4_filename) {
     return;
   }
 
@@ -121,27 +131,33 @@ async function renderDownloadLink(container, playback) {
   container.replaceChildren(link);
 }
 
-function renderPlaceholder(container, type) {
-  startRender(container);
-  const placeholders = {
-    pending: {
-      iconHtml: "<div class='spinner'></div>",
-      string: i18n("discourse_video.state.pending"),
-    },
-    errored: {
-      iconHtml: iconHTML("triangle-exclamation"),
-      string: i18n("discourse_video.state.errored"),
-    },
+// `statusOf` can derive a status from the playback data it shares with the renders
+function renderVideos(elem, statusOf) {
+  // The player and the download link of a video need the same playback data
+  const playbacks = new Map();
+  const playbackFor = (videoId) => {
+    if (!playbacks.has(videoId)) {
+      playbacks.set(videoId, ajax(`/discourse_video/playback_id/${videoId}`));
+    }
+    return playbacks.get(videoId);
   };
-  const { iconHtml, string } = placeholders[type];
-  const placeholder = document.createElement("div");
-  placeholder.className = "icon-container";
-  placeholder.innerHTML = `<div class="discourse-video-message"><div class="video-state-icon">${iconHtml}</div><div class="video-state"></div></div>`;
-  placeholder.querySelector(".video-state").textContent = string;
-  mount(container, placeholder);
+
+  elem.querySelectorAll("div[data-video-id]").forEach((container) => {
+    const { videoId } = container.dataset;
+    renderVideo(container, statusOf(videoId, playbackFor), () =>
+      playbackFor(videoId)
+    );
+  });
+
+  elem.querySelectorAll("div[data-download-video-id]").forEach((container) => {
+    const { downloadVideoId } = container.dataset;
+    renderDownloadLink(container, statusOf(downloadVideoId, playbackFor), () =>
+      playbackFor(downloadVideoId)
+    );
+  });
 }
 
-export function renderVideos(elem, post) {
+export function renderPostVideos(elem, post) {
   if (!post?.discourse_video) {
     return;
   }
@@ -149,34 +165,21 @@ export function renderVideos(elem, post) {
   const statuses = new Map(
     post.discourse_video.map((videoInfo) => videoInfo.split(":"))
   );
+  renderVideos(elem, (videoId) => statuses.get(videoId));
+}
 
-  // The player and the download link of a video need the same playback data
-  const playbacks = new Map();
-  const playbackFor = (videoId) => {
-    if (!playbacks.has(videoId)) {
-      playbacks.set(videoId, fetchPlayback(videoId));
-    }
-    return playbacks.get(videoId);
-  };
+// Chat messages carry no video statuses, so they come with the playback data
+export function renderChatVideos(elem) {
+  renderVideos(
+    elem,
+    async (videoId, playbackFor) => (await playbackFor(videoId))?.state
+  );
+}
 
-  elem.querySelectorAll("div[data-video-id]").forEach((container) => {
-    const { videoId } = container.dataset;
-    // Embeds without a status (post not processed yet, unknown video id) are left as is
-    const status = statuses.get(videoId);
-    if (status === "ready") {
-      renderVideo(container, playbackFor(videoId));
-    } else if (status) {
-      renderPlaceholder(
-        container,
-        status === "errored" ? "errored" : "pending"
-      );
-    }
-  });
-
-  elem.querySelectorAll("div[data-download-video-id]").forEach((container) => {
-    const { downloadVideoId } = container.dataset;
-    if (statuses.get(downloadVideoId) === "ready") {
-      renderDownloadLink(container, playbackFor(downloadVideoId));
-    }
+export function stopRenders(elem) {
+  elem.querySelectorAll(EMBEDS_SELECTOR).forEach((container) => {
+    renders.delete(container);
+    mounted.get(container)?.controller.abort();
+    mounted.delete(container);
   });
 }
