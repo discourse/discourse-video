@@ -111,6 +111,53 @@ describe DiscourseVideo::UploadController do
       )
     end
 
+    it "updates and publishes the remaining posts when a referencing post is trashed" do
+      live_post = Fabricate(:post)
+      trashed_post = Fabricate(:post, topic: live_post.topic)
+      [live_post, trashed_post].each do |post|
+        Fabricate(:video_post, post: post, video_info: "#{video.video_id}:pending")
+      end
+      trashed_post.trash!
+
+      messages =
+        MessageBus.track_publish("/topic/#{live_post.topic_id}") do
+          post "/discourse_video/webhook",
+               params: JSON.parse(ready_data),
+               as: :json,
+               headers: {
+                 "Content-Type" => "aplication/json",
+                 "Mux-Signature" => mux_signature(ready_data),
+               }
+        end
+
+      expect(response.status).to eq(200)
+      expect(DiscourseVideo::VideoPost.pluck(:video_info)).to all(eq(video.reload.video_info))
+      expect(
+        messages.filter_map { _1.data[:id] if _1.data[:type] == :discourse_video_video_changed },
+      ).to contain_exactly(live_post.id)
+    end
+
+    it "leaves the posts of a video whose id starts with the ready video's id untouched" do
+      other_video = Fabricate(:video, video_id: "#{video.video_id}2")
+      other_video_post =
+        Fabricate(:video_post, video_info: "#{other_video.video_id}:#{other_video.state}")
+
+      messages =
+        MessageBus.track_publish("/topic/#{other_video_post.post.topic_id}") do
+          post "/discourse_video/webhook",
+               params: JSON.parse(ready_data),
+               as: :json,
+               headers: {
+                 "Content-Type" => "aplication/json",
+                 "Mux-Signature" => mux_signature(ready_data),
+               }
+        end
+
+      expect(response.status).to eq(200)
+      expect(other_video_post.reload.video_info).to eq(other_video.video_info)
+      expect(messages).to be_empty
+    end
+
     it "accepts static_renditions.ready requests" do
       expect do
         post "/discourse_video/webhook",

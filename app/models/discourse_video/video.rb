@@ -16,7 +16,7 @@ module DiscourseVideo
               }
 
     def video_posts
-      DiscourseVideo::VideoPost.where("video_info LIKE ?", "#{self.video_id}%")
+      rows_for_video(DiscourseVideo::VideoPost)
     end
 
     def video_info
@@ -29,12 +29,12 @@ module DiscourseVideo
 
     def publish_change_to_clients!
       Post
-        .find(video_posts.pluck(:post_id))
+        .where(id: video_posts.select(:post_id))
         .each { |post| post.publish_change_to_clients! :discourse_video_video_changed }
     end
 
     def video_chat_messages
-      DiscourseVideo::VideoChatMessage.where("video_info LIKE ?", "#{self.video_id}%")
+      rows_for_video(DiscourseVideo::VideoChatMessage)
     end
 
     def update_video_chat_message_fields!
@@ -47,6 +47,12 @@ module DiscourseVideo
         .each do |chat_message|
           ChatPublisher.publish_refresh!(chat_message.chat_channel, chat_message)
         end
+    end
+
+    private
+
+    def rows_for_video(model)
+      model.where("video_info LIKE ?", "#{self.class.sanitize_sql_like(video_id)}:%")
     end
   end
 end
