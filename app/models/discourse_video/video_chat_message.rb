@@ -17,7 +17,7 @@ end
 #  video_info :string           not null
 #  created_at :datetime
 #  updated_at :datetime
-#  message_id :integer          not null
+#  message_id :bigint           not null
 #
 # Indexes
 #
